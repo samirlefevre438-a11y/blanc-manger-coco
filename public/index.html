@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page principale</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      margin-top: 100px;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 15px 30px;
+      margin: 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .blanc {
+      background-color: #ffffff;
+      border: 2px solid #000;
+    }
+
+    .blanc:hover {
+      background-color: #ddd;
+    }
+
+    .pimki {
+      background-color: #ff69b4;
+      color: white;
+    }
+
+    .pimki:hover {
+      background-color: #e0529c;
+    }
+  </style>
+  <script>
+    // Détection mobile simple
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+        .test(navigator.userAgent);
+    }
+
+    function goToBlancMangeCoco() {
+      if (isMobile()) {
+        window.location.href = "blanc_mange_coco_mobile.html";
+      } else {
+        window.location.href = "blanc_mange_coco.html";
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Choisis une page :</h1>
+  <button class="blanc" onclick="goToBlancMangeCoco()">Blanc Mangé Coco</button>
+  <button class="pimki" onclick="window.location.href='pimkipoum_nampapoum.html'">Pimkipoum Nampapoum</button>
+</body>
+</html>

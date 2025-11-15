@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Blanc Mangé Coco - Immersif</title>
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+body {margin:0;font-family:Arial;height:100vh;display:flex;overflow:hidden;background:linear-gradient(#fefefe,#ffdede);}
+#jeu{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:10px;}
+#joueurs{width:250px;background:#f7f7f7;border-left:2px solid #ccc;padding:10px;display:flex;flex-direction:column;}
+#zoneQuestion{position:absolute;top:10%;width:100%;text-align:center;}
+#question{display:inline-block;padding:20px;border-radius:15px;background:#fff6a3;font-weight:bold;font-size:1.3em;box-shadow:0 10px 20px rgba(0,0,0,0.3);transition: transform 0.3s;}
+#question:hover{transform:scale(1.05);}
+#zonePosee{position:absolute;top:35%;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;width:80%;min-height:200px;}
+.cartePosée{background:#fff;border-radius:12px;padding:15px;margin:10px;width:160px;text-align:center;cursor:pointer;box-shadow:0 8px 15px rgba(0,0,0,0.25);transition:transform 0.3s,box-shadow 0.3s;position:relative;}
+.cartePosée:hover{transform:scale(1.1);box-shadow:0 12px 25px rgba(0,0,0,0.4);}
+.cartePosée.selected{border:3px solid #ff5050;transform:scale(1.15);}
+.cartePosée.posee{transform: translateY(-10px) scale(1.05);box-shadow:0 12px 20px rgba(0,0,0,0.35);}
+.gagnant{animation:firework 2s ease-in-out 1;}
+@keyframes firework{0%{background:#fff;}20%{background:#ff0;}40%{background:#f90;}60%{background:#f0f;}80%{background:#0ff;}100%{background:#fff;}}
+#mainCartes{display:flex;overflow-x:auto;padding:10px;background:rgba(255,255,255,0.8);border-top:2px solid #ccc;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;}
+.carteMain{flex:0 0 auto;margin-right:10px;background:#fff;border-radius:12px;padding:10px;min-width:120px;text-align:center;cursor:pointer;box-shadow:0 6px 12px rgba(0,0,0,0.2);transition:transform 0.2s;}
+.carteMain:hover,.carteMain:active{transform:scale(1.05);box-shadow:0 8px 15px rgba(0,0,0,0.25);}
+#btnDeco{position:absolute;top:10px;right:10px;padding:5px 10px;border-radius:5px;background:#ff5050;color:white;border:none;transition:0.2s;}
+#btnDeco:hover{background:#ff0000;}
+#message{text-align:center;font-weight:bold;margin-top:5px;color:#ff5050;}
+#pseudoDiv{text-align:center;margin-bottom:10px;}
+#listeJoueurs{font-size:0.9em;margin-bottom:10px;flex:1;overflow-y:auto;}
+#chat{flex:1;display:flex;flex-direction:column;}
+#messages{flex:1;overflow-y:auto;border:1px solid #ccc;padding:5px;background:#fafafa;margin-bottom:5px;}
+#chatForm{display:flex;}
+#chatInput{flex:1;padding:5px;border-radius:5px;border:1px solid #ccc;}
+#chatSend{padding:5px 10px;border-radius:5px;background:#4CAF50;color:white;border:none;margin-left:5px;}
+#chatSend:hover{background:#45a049;}
+#btnAjout{position:absolute;top:10px;left:10px;padding:5px 10px;border-radius:5px;background:#4CAF50;color:white;border:none;z-index:1000;}
+#modalAjout{display:none;position:absolute;top:50px;left:10px;background:white;padding:10px;border:1px solid #ccc;border-radius:5px;z-index:1000;}
+@media(max-width:600px){
+  body{flex-direction:column;}
+  #joueurs{width:100%;height:180px;border-left:none;border-top:2px solid #ccc;flex-direction:row;overflow-x:auto;padding:5px;}
+  #zonePosee{top:25%;width:95%;display:flex;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .cartePosée{flex:0 0 auto;width:140px;margin:0 10px;scroll-snap-align:center;transition: transform 0.3s ease, box-shadow 0.3s ease;}
+  #mainCartes{display:flex;overflow-x:auto;padding:5px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling: touch;}
+  .carteMain{flex:0 0 auto;min-width:100px;margin-right:10px;scroll-snap-align:center;transition: transform 0.2s ease, box-shadow 0.2s ease;}
+  .carteMain:hover,.carteMain:active{transform:scale(1.05);box-shadow:0 8px 15px rgba(0,0,0,0.25);}
+  #question{width:90%; font-size:1.1em; padding:15px;}
+  #chat{height:150px;margin-top:5px;}
+  #messages{height:100px;}
+}
+</style>
+</head>
+<body>
+<div id="jeu">
+  <div id="pseudoDiv">
+    <input id="pseudo" placeholder="Pseudo">
+    <button onclick="rejoindre()">Rejoindre</button>
+  </div>
+  <button id="btnDeco" style="display:none;" onclick="deconnexion()">X</button>
+  <div id="zoneJeu" style="display:none;">
+    <div id="zoneQuestion">
+      <div id="question" class="carte"></div>
+      <button onclick="changerQuestion()">Changer la carte</button>
+    </div>
+    <div id="zonePosee"></div>
+    <div id="mainCartes"></div>
+    <div style="text-align:center;margin-top:5px;"><button onclick="changerMain()">Changer ma main</button></div>
+    <div class="message" id="message"></div>
+  </div>
+</div>
+<div id="joueurs">
+  <h3>Joueurs connectés :</h3>
+  <div id="listeJoueurs"></div>
+  <div id="chat">
+    <div id="messages"></div>
+    <form id="chatForm">
+      <input type="text" id="chatInput" placeholder="Envoyer un message...">
+      <button type="submit" id="chatSend">Envoyer</button>
+    </form>
+  </div>
+</div>
+<button id="btnAjout">+</button>
+<div id="modalAjout">
+  <select id="typeAjout">
+    <option value="carte">Carte</option>
+    <option value="question">Question</option>
+  </select>
+  <input type="text" id="texteAjout" placeholder="Texte à ajouter">
+  <button onclick="envoyerAjout()">Ajouter</button>
+  <button onclick="fermerModal()">X</button>
+</div>
+<script>
+const socket = io();
+let cartesVote = [];
+
+function rejoindre(){
+  const pseudo = document.getElementById("pseudo").value.trim();
+  if(!pseudo) return alert("Pseudo obligatoire");
+  document.getElementById("zoneJeu").style.display="block";
+  document.getElementById("pseudoDiv").style.display="none";
+  document.getElementById("btnDeco").style.display="inline-block";
+  socket.emit("rejoindreSalon", pseudo);
+}
+function deconnexion(){ 
+  socket.emit("deconnexion"); 
+  document.getElementById("zoneJeu").style.display="none"; 
+  document.getElementById("pseudoDiv").style.display="block"; 
+  document.getElementById("btnDeco").style.display="none"; 
+  document.getElementById("pseudo").value="";
+}
+
+// Actions cartes
+function poserIndex(index){ socket.emit("poserCarteIndex", index); }
+function changerMain(){ socket.emit("changerMain"); }
+function changerQuestion(){ socket.emit("changerQuestion"); }
+function voter(i){ socket.emit("voter", i); document.getElementById("message").textContent="Vote enregistré !"; }
+
+// MAIN
+socket.on("main", cartes=>{
+  const mainDiv = document.getElementById("mainCartes");
+  mainDiv.innerHTML = "";
+  cartes.forEach((c,i)=>{
+    const div = document.createElement("div");
+    div.className = "carteMain";
+    div.textContent = c;
+    div.addEventListener("click", ()=> poserIndex(i));
+    mainDiv.appendChild(div);
+  });
+  mainDiv.scrollTo({left: mainDiv.scrollWidth, behavior:"smooth"});
+});
+
+// CARTES POSEES
+socket.on("cartesPosees", cartes=>{
+  const zone = document.getElementById("zonePosee");
+  zone.innerHTML = "";
+  cartes.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "cartePosée";
+    div.textContent = c.carte;
+    zone.appendChild(div);
+    div.classList.add("posee");
+    setTimeout(()=> div.classList.remove("posee"),500);
+  });
+});
+
+// PHASE VOTE
+socket.on("phaseVote", cartes=>{
+  const zone = document.getElementById("zonePosee");
+  zone.innerHTML = "";
+  cartes.forEach((c,i)=>{
+    const div = document.createElement("div");
+    div.className = "cartePosée";
+    div.textContent = c;
+    div.addEventListener("click", ()=>{
+      document.querySelectorAll(".cartePosée").forEach(card=>card.classList.remove("selected"));
+      div.classList.add("selected");
+      voter(i);
+    });
+    zone.appendChild(div);
+    div.style.opacity=0;
+    setTimeout(()=>div.style.opacity=1,i*100);
+  });
+  cartesVote = cartes;
+  document.getElementById("message").textContent="🗳 Votez pour la meilleure carte";
+});
+
+// NOUVEAU TOUR
+socket.on("nouveauTour", data=>{
+  const { salon, gagnants } = data;
+  document.getElementById("message").textContent="🔁 Nouvelle manche !";
+  document.getElementById("zonePosee").innerHTML="";
+  const listeDiv = document.getElementById("listeJoueurs");
+  listeDiv.innerHTML = '';
+  Object.values(salon.joueurs).forEach(j=>{
+    const div = document.createElement('div');
+    div.textContent = `${j.pseudo} (Points: ${j.points})`;
+    div.id = `joueur-${j.pseudo.replace(/\s/g,'_')}`;
+    listeDiv.appendChild(div);
+  });
+  gagnants.forEach(g=>{
+    const divG = document.getElementById(`joueur-${salon.joueurs[g.socketId]?.pseudo.replace(/\s/g,'_')}`);
+    if(divG) divG.classList.add('gagnant');
+  });
+  setTimeout(()=>{document.querySelectorAll('.gagnant').forEach(c=>c.classList.remove('gagnant'));},2000);
+});
+
+// SALON
+socket.on("etatSalon", salon=>{
+  const listeDiv = document.getElementById("listeJoueurs");
+  listeDiv.innerHTML = '';
+  Object.values(salon.joueurs).forEach(j=>{
+    const div = document.createElement('div');
+    div.textContent = `${j.pseudo} (Points: ${j.points})`;
+    div.id = `joueur-${j.pseudo.replace(/\s/g,'_')}`;
+    listeDiv.appendChild(div);
+  });
+});
+
+// QUESTION
+socket.on("question", texte=>{ document.getElementById("question").textContent=texte; });
+
+// CHAT
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatInput");
+const messagesDiv = document.getElementById("messages");
+chatForm.addEventListener("submit", e=>{
+  e.preventDefault();
+  const msg = chatInput.value.trim();
+  if(msg==='') return;
+  socket.emit("chatMessage", msg);
+  chatInput.value='';
+});
+socket.on("chatMessage",(data)=>{
+  const div = document.createElement('div');
+  div.textContent = data;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+
+// AJOUTER CARTES
+const btnAjout = document.getElementById("btnAjout");
+const modalAjout = document.getElementById("modalAjout");
+function fermerModal(){ modalAjout.style.display="none"; }
+btnAjout.onclick = ()=>{ modalAjout.style.display="block"; }
+function envoyerAjout(){
+  const texte = document.getElementById("texteAjout").value.trim();
+  const type = document.getElementById("typeAjout").value;
+  if(!texte) return alert("Le texte est vide");
+  fetch("/ajouterCarte", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type,texte})})
+  .then(r=>r.json()).then(res=>{if(res.success){alert("Ajout réussi !");document.getElementById("texteAjout").value="";fermerModal();}});
+}
+
+// TOUCH MOMENTUM
+const mainDiv = document.getElementById("mainCartes");
+mainDiv.addEventListener("touchstart", ()=>{ mainDiv.style.scrollSnapType="none"; });
+mainDiv.addEventListener("touchend", ()=>{ mainDiv.style.scrollSnapType="x mandatory"; });
+
+</script>
+</body>
+</html>
