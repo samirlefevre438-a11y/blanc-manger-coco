@@ -3,267 +3,214 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blanc Mangé Coco - PC</title>
+<title>Blanc Mangé Coco</title>
 
 <style>
-/* -------------------- POLICES -------------------- */
+/* POLICES */
 @font-face {
-  font-family: "Madloud";
-  src: url("tf-madloud.ttf");
+  font-family: "TFMadloud";
+  src: url("fonts/TF-Madloud.ttf") format("truetype");
 }
 
+/* GLOBALE */
 body {
   margin: 0;
-  padding: 0;
-  background: #001e12;
+  background: #031d11;
+  font-family: "TFMadloud", sans-serif;
   color: #0DFF8A;
-  font-family: "Madloud", sans-serif;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
+  overflow-x: hidden;
 }
 
-/* -------------------- LAYOUT -------------------- */
-#plateau {
-  flex: 1;
+h2, h3 { margin: 10px 0; }
+
+/* CONTAINER */
+#container {
   display: flex;
-  flex-direction: column;
   height: 100vh;
 }
 
-/* QUESTION EN HAUT */
-#questionBox {
-  width: 100%;
-  text-align: center;
+/* JOUEURS À DROITE */
+#joueurs {
+  width: 230px;
+  background: #062b1a;
   padding: 15px;
-  font-size: 2rem;
-  background: rgba(0, 0, 0, 0.4);
-  border-bottom: 3px solid #0DFF8A;
-}
-
-/* CARTES POSÉES — ZONE CENTRALE */
-#cartesPosees {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-/* MAIN JOUEUR EN BAS */
-#mainJoueur {
-  height: 220px;
-  display: flex;
-  gap: 15px;
-  padding: 10px;
-  background: rgba(0,0,0,0.4);
-  border-top: 3px solid #0DFF8A;
-  overflow-x: auto;
-}
-
-/* -------------------- CARTE -------------------- */
-.carte {
-  width: 160px;
-  height: 230px;
-  background-image: url("KUKIMIX_20251116_183350_0000.png");
-  background-size: cover;
-  background-position: center;
-  border-radius: 15px;
-  border: 3px solid #0DFF8A;
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  color: white;
-  text-shadow: 1px 1px 2px black;
-  font-family: Arial, sans-serif;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.carte:hover {
-  transform: scale(1.07);
-}
-
-/* -------------------- PANNEL LATÉRAL -------------------- */
-#panelDroite {
-  width: 280px;
-  background: rgba(0,0,0,0.75);
   border-left: 3px solid #0DFF8A;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-#joueursBox {
-  flex: 1;
   overflow-y: auto;
-  padding: 10px;
-  border-bottom: 2px solid #0DFF8A;
 }
 
-#chatBox {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
+#joueurs h3 { text-align: center; }
 
-#chatMessages {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 1rem;
-}
-
-#chatInput {
-  margin-top: 10px;
-  height: 35px;
-  border-radius: 6px;
-  border: none;
-  padding-left: 6px;
-}
-
-/* -------------------- BOUTONS -------------------- */
-button {
-  background: #0DFF8A;
-  color: black;
-  border: none;
-  padding: 10px;
+.joueur {
+  padding: 8px;
+  margin-bottom: 6px;
+  background: #094327;
   border-radius: 8px;
-  font-size: 1rem;
-  margin-top: 10px;
+}
+
+/* ZONE JEU */
+#zoneJeu {
+  flex: 1;
+  padding: 20px;
+}
+
+/* CARTE QUESTION */
+#carteQuestion {
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+/* BOUTONS */
+button {
+  font-family: "TFMadloud";
+  background: #0DFF8A;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  margin: 5px;
 }
 
 button:hover {
-  filter: brightness(1.2);
+  background: #0bdf76;
 }
 
+/* CARTES */
+.mainCarte {
+  background: white;
+  color: black;
+  width: 180px;
+  padding: 18px;
+  margin: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  transition: 0.2s;
+}
+
+.mainCarte:hover { transform: scale(1.06); }
+
+#main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* CARTES POSÉES */
+#cartesPosees {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.cartePosee {
+  background: white;
+  width: 160px;
+  padding: 18px;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+}
+
+/* CHAT */
+#chatBox {
+  background: #062b1a;
+  border-top: 3px solid #0DFF8A;
+  padding: 10px;
+  height: 200px;
+  overflow-y: auto;
+}
+
+#chatInput {
+  width: 70%;
+  padding: 8px;
+}
 </style>
-</head>
-
-<body>
-
-<!-- ------------------ PANEL DROITE ------------------ -->
-<div id="panelDroite">
-
-  <h2>Joueurs</h2>
-  <div id="joueursBox"></div>
-
-  <h2>Chat</h2>
-  <div id="chatBox">
-    <div id="chatMessages"></div>
-    <input id="chatInput" type="text" placeholder="Message..." />
-  </div>
-
-  <button id="changerCarteBtn">Changer carte</button>
-  <button id="changerMainBtn">Changer main</button>
-
-</div>
-
-<!-- ------------------ PLATEAU ------------------ -->
-<div id="plateau">
-
-  <div id="questionBox">Question...</div>
-
-  <div id="cartesPosees"></div>
-
-  <div id="mainJoueur"></div>
-
-</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
+let pseudo = "";
 
-/* REFERENCES UI */
-const questionBox = document.getElementById("questionBox");
-const mainJoueur = document.getElementById("mainJoueur");
-const cartesPosees = document.getElementById("cartesPosees");
-const joueursBox = document.getElementById("joueursBox");
+/* DEMANDE PSEUDO */
+window.onload = () => {
+  pseudo = prompt("Entrez votre pseudo :");
+  socket.emit("rejoindreSalon", pseudo);
+};
 
-/* CHAT */
-const chatInput = document.getElementById("chatInput");
-const chatMessages = document.getElementById("chatMessages");
-
-/* ----- FONCTIONS RENDU ----- */
-function renderMain(main) {
-  mainJoueur.innerHTML = "";
-  main.forEach((txt, i) => {
-    const c = document.createElement("div");
-    c.className = "carte";
-    c.textContent = txt;
-    c.onclick = () => socket.emit("poserCarteIndex", i);
-    mainJoueur.appendChild(c);
-  });
-}
-
-function renderPosees(liste) {
-  cartesPosees.innerHTML = "";
-  liste.forEach(carte => {
-    const d = document.createElement("div");
-    d.className = "carte";
-    d.textContent = carte.carte;
-    cartesPosees.appendChild(d);
-  });
-}
-
-/* ----- SOCKET EVENTS ----- */
-socket.on("main", renderMain);
-socket.on("question", txt => questionBox.textContent = txt);
-socket.on("cartesPosees", renderPosees);
-
-socket.on("etatSalon", salon => {
-  joueursBox.innerHTML = "";
-  Object.values(salon.joueurs).forEach(j => {
-    const p = document.createElement("div");
-    p.textContent = `${j.pseudo} (${j.points} pts)`;
-    joueursBox.appendChild(p);
+/* RÉCEPTION MAIN */
+socket.on("main", (main) => {
+  const div = document.getElementById("main");
+  div.innerHTML = "";
+  main.forEach((c, idx) => {
+    const el = document.createElement("div");
+    el.className = "mainCarte";
+    el.innerText = c;
+    el.onclick = () => socket.emit("poserCarteIndex", idx);
+    div.appendChild(el);
   });
 });
 
-socket.on("phaseVote", cartes => {
-  cartesPosees.innerHTML = "";
-  cartes.forEach((txt, i) => {
-    const d = document.createElement("div");
-    d.className = "carte";
-    d.textContent = txt;
-    d.onclick = () => socket.emit("voter", i);
-    cartesPosees.appendChild(d);
-  });
+/* QUESTION */
+socket.on("question", (q) => {
+  document.getElementById("carteQuestion").innerText = q;
 });
 
-socket.on("nouveauTour", () => {
-  cartesPosees.innerHTML = "";
+/* CARTES POSÉES */
+socket.on("cartesPosees", (cartes) => {
+  const zone = document.getElementById("cartesPosees");
+  zone.innerHTML = "";
+  cartes.forEach((c) => {
+    let el = document.createElement("div");
+    el.className = "cartePosee";
+    el.innerText = c.carte;
+    zone.appendChild(el);
+  });
 });
 
 /* CHAT */
-chatInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && chatInput.value.trim() !== "") {
-    socket.emit("chatMessage", chatInput.value.trim());
-    chatInput.value = "";
-  }
+socket.on("chatMessage", (m) => {
+  const box = document.getElementById("chatBox");
+  box.innerHTML += `<div>${m}</div>`;
+  box.scrollTop = box.scrollHeight;
 });
-
-socket.on("chatMessage", msg => {
-  const p = document.createElement("div");
-  p.textContent = msg;
-  chatMessages.appendChild(p);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-});
-
-/* BOUTONS */
-document.getElementById("changerCarteBtn").onclick = () =>
-  socket.emit("changerQuestion");
-
-document.getElementById("changerMainBtn").onclick = () =>
-  socket.emit("changerMain");
 </script>
 
+</head>
+<body>
+
+<div id="container">
+
+  <div id="zoneJeu">
+    <h2>Blanc Mangé Coco</h2>
+
+    <div id="carteQuestion">Chargement...</div>
+
+    <div style="margin-top:15px;">
+      <button onclick="socket.emit('changerQuestion')">Changer Question</button>
+      <button onclick="socket.emit('changerMain')">Changer Main</button>
+    </div>
+
+    <h3>Cartes posées :</h3>
+    <div id="cartesPosees"></div>
+
+    <h3>Votre main :</h3>
+    <div id="main"></div>
+
+    <h3>Chat :</h3>
+    <div id="chatBox"></div>
+    <input id="chatInput" onkeypress="if(event.key==='Enter'){ socket.emit('chatMessage', this.value); this.value=''; }" placeholder="Message...">
+  </div>
+
+  <div id="joueurs">
+    <h3>Joueurs</h3>
+    <div id="listeJoueurs"></div>
+  </div>
+
+</div>
 </body>
 </html>
