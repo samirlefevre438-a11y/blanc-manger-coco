@@ -3,62 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page principale</title>
+  <title>Menu</title>
+
   <style>
+    @font-face {
+      font-family: "TFMadloud";
+      src: url("fonts/TF-Madloud.ttf") format("truetype");
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      background: #021a10;
+      color: #0DFF8A;
+      font-family: "TFMadloud", sans-serif;
       text-align: center;
-      background-color: #f4f4f4;
-      margin-top: 100px;
+      padding-top: 120px;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      letter-spacing: 2px;
     }
 
     button {
-      font-size: 1.2em;
-      padding: 15px 30px;
-      margin: 20px;
+      font-family: "TFMadloud", sans-serif;
+      background: #0DFF8A;
+      color: #021a10;
       border: none;
-      border-radius: 10px;
+      padding: 18px 32px;
+      font-size: 1.3em;
+      border-radius: 12px;
+      margin: 25px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: 0.25s;
     }
 
-    .blanc {
-      background-color: #ffffff;
-      border: 2px solid #000;
-    }
-
-    .blanc:hover {
-      background-color: #ddd;
-    }
-
-    .pimki {
-      background-color: #ff69b4;
-      color: white;
-    }
-
-    .pimki:hover {
-      background-color: #e0529c;
+    button:hover {
+      transform: scale(1.07);
+      background: #0bdf76;
     }
   </style>
-  <script>
-    // Détection mobile simple
-    function isMobile() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-        .test(navigator.userAgent);
-    }
-
-    function goToBlancMangeCoco() {
-      if (isMobile()) {
-        window.location.href = "blanc_mange_coco_mobile.html";
-      } else {
-        window.location.href = "blanc_mange_coco.html";
-      }
-    }
-  </script>
 </head>
 <body>
-  <h1>Choisis une page :</h1>
-  <button class="blanc" onclick="goToBlancMangeCoco()">Blanc Mangé Coco</button>
-  <button class="pimki" onclick="window.location.href='pimkipoum_nampapoum.html'">Pimkipoum Nampapoum</button>
+  <h1>Choisis une page</h1>
+  <button onclick="location.href='blanc_mange_coco.html'">Blanc Mangé Coco</button>
+  <button onclick="location.href='pimkipoum_nampapoum.html'">Pimkipoum Nampapoum</button>
 </body>
 </html>
