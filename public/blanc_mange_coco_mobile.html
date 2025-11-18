@@ -2,179 +2,200 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<title>Blanc Mangé Coco – Mobile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blanc Mangé Coco - Mobile</title>
 
+<!-- POLICE MADLOUD -->
 <style>
-/* ======== FONTS ======== */
 @font-face {
-    font-family: 'Madloud';
-    src: url('fonts/Madloud.ttf');
+  font-family: "Madloud";
+  src: url("https://dl.dropboxusercontent.com/scl/fi/7z6tq0cxm8c7z3i44kscg/tf_madloud.ttf?rlkey=13fd4nn1g3g7tonw9g8zl1q46&dl=0");
 }
 
-/* ======== GLOBAL ======== */
+:root {
+  --vert: #0DFF8A;
+  --fond: #031b11;
+  --fond2: #08281d;
+}
+
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Madloud', sans-serif;
-    background: #0DFF8A;
-    overflow: hidden;
+  margin: 0;
+  font-family: Madloud, Arial, sans-serif;
+  background: var(--fond);
+  color: var(--vert);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-#game {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+/* QUESTION */
+#questionContainer {
+  padding: 12px;
+  background: var(--fond2);
+  border-bottom: 2px solid var(--vert);
+  text-align: center;
+}
+#question {
+  font-size: 1.3rem;
 }
 
-/* ======== QUESTION CARD ======== */
-#questionCard {
-    background: white;
-    color: black;
-    padding: 12px;
-    margin: 10px;
-    border-radius: 12px;
-    font-size: 1.1em;
-    text-align: center;
-    min-height: 60px;
+/* CARTES POSÉES */
+#poseesContainer {
+  flex: 1;
+  overflow-x: auto;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
 }
 
-/* ======== CARTES POSÉES ======== */
-#cartesPosees {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 10px;
-}
-
-.card {
-    width: 110px;
-    height: 150px;
-    background: url("img/carte.png") no-repeat center/cover;
-    border-radius: 10px;
-    position: relative;
-    padding: 8px;
-}
-
-.cardText {
-    position: absolute;
-    top: 5px; left: 5px; right: 5px;
-    font-size: 0.73em;
-    font-weight: bold;
-    color: black;
-}
-
-/* ======== MAIN DU JOUEUR ======== */
+/* MAIN DE CARTES */
 #mainContainer {
-    height: 150px;
-    overflow-x: auto;
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(0,0,0,0.1);
+  height: 32vh;
+  background: rgba(0,0,0,0.3);
+  border-top: 2px solid var(--vert);
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  overflow-x: auto;
 }
 
-#mainContainer::-webkit-scrollbar {
-    height: 7px;
-}
-#mainContainer::-webkit-scrollbar-thumb {
-    background: #007744;
-    border-radius: 5px;
-}
-
-/* ======== BOUTONS FLOTTANTS ======== */
-.floatingBtn {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    padding: 12px;
-    border-radius: 50%;
-    background: #003f1f;
-    color: white;
-    border: 2px solid #00ff95;
-    font-size: 1.5em;
-    z-index: 20;
+/* CARTE */
+.carte {
+  width: 135px;
+  height: 190px;
+  flex-shrink: 0;
+  background-image: url("card.png");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border: 2px solid var(--vert);
+  border-radius: 10px;
+  display: flex;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
-/* Décalage pour le bouton options */
-#optionsBtn {
-    right: 70px;
+.card-text {
+  font-family: Arial, sans-serif;
+  background: rgba(0,0,0,0.6);
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1rem;
+  max-height: 120px;
+  overflow: hidden;
 }
 
-/* ======== PANNEAUX OUVRABLES ======== */
+/* ONGLET CHAT ET PARAM */
+.floating-tabs {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 999;
+}
+
+.tab-btn {
+  background: var(--vert);
+  color: black;
+  border: none;
+  padding: 13px 15px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+}
+
+/* PANNEAU FLOTTANT */
 .panel {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 80vw;
-    height: 60vh;
-    background: white;
-    border-top-left-radius: 20px;
-    border-left: 4px solid #00ff95;
-    border-top: 4px solid #00ff95;
-    padding: 15px;
-    transform: translateY(100%);
-    transition: transform .35s ease;
-    z-index: 30;
-    overflow-y: auto;
+  position: absolute;
+  bottom: 70px;
+  right: 15px;
+  width: 260px;
+  height: 280px;
+  background: rgba(0,0,0,0.92);
+  border: 2px solid var(--vert);
+  border-radius: 14px;
+  display: none;
+  flex-direction: column;
+  padding: 10px;
+  z-index: 999;
 }
 
-.panel.open {
-    transform: translateY(0);
-}
-
-/* ======== CHAT ======== */
-#chatMessages {
-    height: 80%;
-    overflow-y: auto;
-    border: 1px solid #00ff95;
-    padding: 10px;
+/* CHAT */
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  color: white;
+  font-family: Arial, sans-serif;
+  padding-right: 5px;
 }
 
 #chatInput {
-    width: 100%;
-    padding: 8px;
-    margin-top: 10px;
-    border-radius: 10px;
+  display: flex;
+  gap: 8px;
+}
+#chatInput input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+}
+#chatInput button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--vert);
+  border: none;
+}
+
+/* PANEL PARAM */
+.paramBtn {
+  background: var(--vert);
+  color: black;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 1.1rem;
 }
 
 </style>
 </head>
+
 <body>
 
-<div id="game">
-
-    <div id="questionCard">Chargement...</div>
-
-    <div id="cartesPosees"></div>
-
-    <div id="mainContainer"></div>
-
+<!-- QUESTION -->
+<div id="questionContainer">
+  <div id="question">Chargement…</div>
 </div>
 
-<!-- Boutons flottants -->
-<button id="chatBtn" class="floatingBtn">💬</button>
-<button id="optionsBtn" class="floatingBtn">⚙️</button>
+<!-- CARTES POSÉES -->
+<div id="poseesContainer"></div>
+
+<!-- MAIN -->
+<div id="mainContainer"></div>
+
+<!-- ONGLET FLOTTANT -->
+<div class="floating-tabs">
+  <button id="openChat" class="tab-btn">💬</button>
+  <button id="openParam" class="tab-btn">⚙️</button>
+</div>
 
 <!-- PANEL CHAT -->
 <div id="chatPanel" class="panel">
-    <h3>Chat</h3>
-    <div id="chatMessages"></div>
-    <input id="chatInput" type="text" placeholder="Écrire...">
+  <div id="messages"></div>
+  <div id="chatInput">
+    <input id="chatMsg" placeholder="Message…">
+    <button onclick="sendChat()">OK</button>
+  </div>
 </div>
 
-<!-- PANEL OPTIONS -->
-<div id="optionsPanel" class="panel">
-    <h3>Options</h3>
-    <button onclick="changerMain()">Changer toute la main</button>
-    <button onclick="demanderChangementCarte()">Changer la carte question</button>
+<!-- PANEL PARAM -->
+<div id="paramPanel" class="panel">
+  <button class="paramBtn" onclick="socket.emit('changerQuestion')">Changer Question</button>
+  <button class="paramBtn" onclick="socket.emit('changerMain')">Changer Main</button>
+  <button class="paramBtn" onclick="socket.emit('deconnexion'); location.reload();">Quitter</button>
 </div>
 
 
@@ -182,68 +203,99 @@ body {
 <script>
 const socket = io();
 
-/* ----- Boutons flottants ----- */
+/* PSEUDO */
+let pseudo = prompt("Ton pseudo ?");
+socket.emit("rejoindreSalon", pseudo);
+
+/* ELEMENTS */
+const questionDiv = document.getElementById("question");
+const poseesContainer = document.getElementById("poseesContainer");
+const mainContainer = document.getElementById("mainContainer");
 const chatPanel = document.getElementById("chatPanel");
-const optionsPanel = document.getElementById("optionsPanel");
+const paramPanel = document.getElementById("paramPanel");
+const messagesDiv = document.getElementById("messages");
 
-document.getElementById("chatBtn").onclick = () => {
-    chatPanel.classList.toggle("open");
-    optionsPanel.classList.remove("open");
+/* --------------------------------------------- */
+/* ONGLET CHAT / PARAM                           */
+/* --------------------------------------------- */
+
+document.getElementById("openChat").onclick = () => {
+  chatPanel.style.display = chatPanel.style.display === "flex" ? "none" : "flex";
+  paramPanel.style.display = "none";
 };
 
-document.getElementById("optionsBtn").onclick = () => {
-    optionsPanel.classList.toggle("open");
-    chatPanel.classList.remove("open");
+document.getElementById("openParam").onclick = () => {
+  paramPanel.style.display = paramPanel.style.display === "flex" ? "none" : "flex";
+  chatPanel.style.display = "none";
 };
 
-/* ----- Chat ----- */
-document.getElementById("chatInput").addEventListener("keypress", e=>{
-    if(e.key==="Enter"){
-        socket.emit("chatMessage", e.target.value);
-        e.target.value="";
-    }
+/* --------------------------------------------- */
+/* CHAT                                          */
+/* --------------------------------------------- */
+function sendChat() {
+  const msg = document.getElementById("chatMsg");
+  if (msg.value.trim()) {
+    socket.emit("chatMessage", msg.value);
+    msg.value = "";
+  }
+}
+
+socket.on("chatMessage", m => {
+  messagesDiv.innerHTML += m + "<br>";
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
 
-socket.on("chatMessage", msg=>{
-    const box = document.getElementById("chatMessages");
-    box.innerHTML += `<div>${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
+/* --------------------------------------------- */
+/* CREATION DES CARTES                           */
+/* --------------------------------------------- */
+function createCard(text, index, clickFn) {
+  const c = document.createElement("div");
+  c.className = "carte";
+  c.dataset.index = index;
+
+  const t = document.createElement("div");
+  t.className = "card-text";
+  t.textContent = text;
+
+  c.appendChild(t);
+
+  if (clickFn) c.onclick = () => clickFn(index);
+
+  return c;
+}
+
+/* --------------------------------------------- */
+/* MAIN / CARTES POSEES / VOTE                   */
+/* --------------------------------------------- */
+socket.on("question", q => questionDiv.textContent = q);
+
+socket.on("main", main => {
+  mainContainer.innerHTML = "";
+  main.forEach((txt, i) => {
+    mainContainer.appendChild(createCard(txt, i, i => socket.emit("poserCarteIndex", i)));
+  });
 });
 
-/* ----- Question ----- */
-socket.on("question", q=>{
-    document.getElementById("questionCard").innerText = q;
+socket.on("cartesPosees", list => {
+  poseesContainer.innerHTML = "";
+  list.forEach((obj, i) => {
+    poseesContainer.appendChild(createCard(obj.carte || obj, i));
+  });
 });
 
-/* ----- Cartes posées ----- */
-socket.on("cartesPosees", cartes=>{
-    const zone = document.getElementById("cartesPosees");
-    zone.innerHTML = "";
-    cartes.forEach(c=>{
-        zone.innerHTML += `
-            <div class="card"><div class="cardText">${c.carte}</div></div>
-        `;
-    });
+socket.on("phaseVote", cards => {
+  poseesContainer.innerHTML = "";
+  cards.forEach((txt, i) => {
+    poseesContainer.appendChild(createCard(txt, i, i => socket.emit("voter", i)));
+  });
 });
 
-/* ----- Main du joueur ----- */
-socket.on("main", main=>{
-    const cont = document.getElementById("mainContainer");
-    cont.innerHTML="";
-    main.forEach((c,i)=>{
-        cont.innerHTML += `
-            <div class="card" onclick="poser(${i})">
-                <div class="cardText">${c}</div>
-            </div>
-        `;
-    });
+/* NOUVEAU TOUR */
+socket.on("nouveauTour", () => {
+  poseesContainer.innerHTML = "";
 });
-
-/* ----- Actions ----- */
-function poser(i){ socket.emit("poserCarteIndex", i); }
-function changerMain(){ socket.emit("changerMain"); }
-function demanderChangementCarte(){ socket.emit("changerQuestion"); }
 
 </script>
+
 </body>
 </html>
