@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Blanc Mangé Coco – Mobile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- POLICE MADLOUD -->
 <style>
@@ -11,40 +11,33 @@
   font-family: "Madloud";
   src: url("https://dl.dropboxusercontent.com/scl/fi/7z6tq0cxm8c7z3i44kscg/tf_madloud.ttf?rlkey=13fd4nn1g3g7tonw9g8zl1q46&dl=0");
 }
-</style>
 
-<style>
-/* THEME */
 :root {
   --vert: #0DFF8A;
   --fond: #031b11;
-  --fond-sombre: #06251a;
+  --fond2: #08281d;
 }
 
-/* PAGE FULLSCREEN */
 body {
   margin: 0;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
   font-family: Madloud, Arial, sans-serif;
   background: var(--fond);
-  overflow: hidden;
   color: var(--vert);
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  overflow: hidden;
 }
 
 /* QUESTION */
 #questionContainer {
   padding: 12px;
-  background: var(--fond-sombre);
-  border-bottom: 3px solid var(--vert);
+  background: var(--fond2);
+  border-bottom: 2px solid var(--vert);
   text-align: center;
 }
-
 #question {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
 }
 
 /* CARTES POSÉES */
@@ -52,131 +45,121 @@ body {
   flex: 1;
   overflow-x: auto;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   padding: 12px;
 }
 
-/* MAIN */
+/* MAIN DE CARTES */
 #mainContainer {
-  height: 35vh;
-  border-top: 3px solid var(--vert);
-  background: rgba(0,0,0,0.4);
+  height: 32vh;
+  background: rgba(0,0,0,0.3);
+  border-top: 2px solid var(--vert);
   display: flex;
-  gap: 10px;
+  gap: 12px;
   padding: 10px;
   overflow-x: auto;
 }
 
 /* CARTE */
 .carte {
-  width: 140px;
-  height: 200px;
+  width: 135px;
+  height: 190px;
   flex-shrink: 0;
   background-image: url("card.png");
   background-size: cover;
   background-position: center;
-  border: 3px solid var(--vert);
-  border-radius: 12px;
-  display: flex;
-  box-sizing: border-box;
-  padding: 8px;
   position: relative;
+  border: 2px solid var(--vert);
+  border-radius: 10px;
+  display: flex;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .card-text {
   font-family: Arial, sans-serif;
   background: rgba(0,0,0,0.6);
-  padding: 5px;
+  padding: 6px;
   border-radius: 8px;
-  font-size: 0.9rem;
-  line-height: 1.1rem;
-  overflow: hidden;
+  font-size: 0.85rem;
+  line-height: 1rem;
   max-height: 120px;
+  overflow: hidden;
 }
 
-/* BOUTONS FLOTTANTS */
-.fab {
+/* ONGLET CHAT ET PARAM */
+.floating-tabs {
   position: absolute;
+  bottom: 15px;
   right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   z-index: 999;
+}
+
+.tab-btn {
   background: var(--vert);
   color: black;
   border: none;
-  border-radius: 50%;
-  padding: 16px;
-  font-size: 1.3rem;
+  padding: 13px 15px;
+  border-radius: 12px;
+  font-size: 1.2rem;
 }
 
-/* CHAT BUTTON */
-#chatBtn { bottom: 110px; }
-
-/* PARAM BUTTON */
-#paramBtn { bottom: 35px; }
-
-/* CHAT PANEL */
-#chatPanel {
+/* PANNEAU FLOTTANT */
+.panel {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 45vh;
+  bottom: 70px;
+  right: 15px;
+  width: 260px;
+  height: 280px;
+  background: rgba(0,0,0,0.92);
+  border: 2px solid var(--vert);
+  border-radius: 14px;
   display: none;
-  background: rgba(0,0,0,0.9);
-  border-top: 3px solid var(--vert);
   flex-direction: column;
+  padding: 10px;
+  z-index: 999;
 }
 
+/* CHAT */
 #messages {
   flex: 1;
-  padding: 10px;
   overflow-y: auto;
-  font-family: Arial, sans-serif;
   color: white;
+  font-family: Arial, sans-serif;
+  padding-right: 5px;
 }
 
 #chatInput {
   display: flex;
-  padding: 10px;
-  gap: 10px;
+  gap: 8px;
 }
-
 #chatInput input {
   flex: 1;
-  padding: 12px;
+  padding: 8px;
   border-radius: 8px;
   border: none;
 }
-
 #chatInput button {
-  padding: 12px 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
   background: var(--vert);
   border: none;
-  border-radius: 8px;
 }
 
-/* PANEL PARAMÈTRES */
-#paramPanel {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 35vh;
-  background: rgba(0,0,0,0.9);
-  border-top: 3px solid var(--vert);
-  display: none;
-  flex-direction: column;
-  padding: 15px;
-  gap: 10px;
-  text-align: center;
-}
-
+/* PANEL PARAM */
 .paramBtn {
-  padding: 12px;
-  width: 90%;
-  margin: auto;
   background: var(--vert);
   color: black;
+  padding: 12px;
   border: none;
-  border-radius: 10px;
-  font-size: 1.2rem;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 1.1rem;
 }
+
 </style>
 </head>
 
@@ -193,26 +176,28 @@ body {
 <!-- MAIN -->
 <div id="mainContainer"></div>
 
-<!-- BOUTONS FLOTTANTS -->
-<button id="chatBtn" class="fab">💬</button>
-<button id="paramBtn" class="fab">⚙️</button>
+<!-- ONGLET FLOTTANT -->
+<div class="floating-tabs">
+  <button id="openChat" class="tab-btn">💬</button>
+  <button id="openParam" class="tab-btn">⚙️</button>
+</div>
 
-<!-- CHAT PANEL -->
-<div id="chatPanel">
+<!-- PANEL CHAT -->
+<div id="chatPanel" class="panel">
   <div id="messages"></div>
   <div id="chatInput">
     <input id="chatMsg" placeholder="Message…">
-    <button onclick="sendChat()">Envoyer</button>
+    <button onclick="sendChat()">OK</button>
   </div>
 </div>
 
-<!-- PARAMÈTRES -->
-<div id="paramPanel">
+<!-- PANEL PARAM -->
+<div id="paramPanel" class="panel">
   <button class="paramBtn" onclick="socket.emit('changerQuestion')">Changer Question</button>
   <button class="paramBtn" onclick="socket.emit('changerMain')">Changer Main</button>
   <button class="paramBtn" onclick="socket.emit('deconnexion'); location.reload();">Quitter</button>
-  <button class="paramBtn" onclick="document.getElementById('paramPanel').style.display='none'">Fermer</button>
 </div>
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -227,33 +212,43 @@ const questionDiv = document.getElementById("question");
 const poseesContainer = document.getElementById("poseesContainer");
 const mainContainer = document.getElementById("mainContainer");
 const chatPanel = document.getElementById("chatPanel");
+const paramPanel = document.getElementById("paramPanel");
 const messagesDiv = document.getElementById("messages");
 
-/* CHAT */
-document.getElementById("chatBtn").onclick = () => {
-  chatPanel.style.display = (chatPanel.style.display === "flex" ? "none" : "flex");
+/* --------------------------------------------- */
+/* ONGLET CHAT / PARAM                           */
+/* --------------------------------------------- */
+
+document.getElementById("openChat").onclick = () => {
+  chatPanel.style.display = chatPanel.style.display === "flex" ? "none" : "flex";
+  paramPanel.style.display = "none";
 };
 
+document.getElementById("openParam").onclick = () => {
+  paramPanel.style.display = paramPanel.style.display === "flex" ? "none" : "flex";
+  chatPanel.style.display = "none";
+};
+
+/* --------------------------------------------- */
+/* CHAT                                          */
+/* --------------------------------------------- */
 function sendChat() {
   const msg = document.getElementById("chatMsg");
-  if (msg.value.trim() !== "") {
-    socket.emit("chatMessage", msg.value.trim());
+  if (msg.value.trim()) {
+    socket.emit("chatMessage", msg.value);
     msg.value = "";
   }
 }
 
-socket.on("chatMessage", msg => {
-  messagesDiv.innerHTML += msg + "<br>";
+socket.on("chatMessage", m => {
+  messagesDiv.innerHTML += m + "<br>";
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
 
-/* PARAM */
-document.getElementById("paramBtn").onclick = () => {
-  document.getElementById("paramPanel").style.display = "flex";
-};
-
-/* RENDU DES CARTES */
-function createCard(text, index, clickableCallback) {
+/* --------------------------------------------- */
+/* CREATION DES CARTES                           */
+/* --------------------------------------------- */
+function createCard(text, index, clickFn) {
   const c = document.createElement("div");
   c.className = "carte";
   c.dataset.index = index;
@@ -263,20 +258,24 @@ function createCard(text, index, clickableCallback) {
   t.textContent = text;
 
   c.appendChild(t);
-  if (clickableCallback) c.onclick = () => clickableCallback(index);
+
+  if (clickFn) c.onclick = () => clickFn(index);
 
   return c;
 }
 
-/* MAIN */
+/* --------------------------------------------- */
+/* MAIN / CARTES POSEES / VOTE                   */
+/* --------------------------------------------- */
+socket.on("question", q => questionDiv.textContent = q);
+
 socket.on("main", main => {
   mainContainer.innerHTML = "";
   main.forEach((txt, i) => {
-    mainContainer.appendChild(createCard(txt, i, (i) => socket.emit("poserCarteIndex", i)));
+    mainContainer.appendChild(createCard(txt, i, i => socket.emit("poserCarteIndex", i)));
   });
 });
 
-/* CARTES POSÉES */
 socket.on("cartesPosees", list => {
   poseesContainer.innerHTML = "";
   list.forEach((obj, i) => {
@@ -284,22 +283,18 @@ socket.on("cartesPosees", list => {
   });
 });
 
-/* QUESTION */
-socket.on("question", q => questionDiv.textContent = q);
-
-/* VOTE */
 socket.on("phaseVote", cards => {
   poseesContainer.innerHTML = "";
   cards.forEach((txt, i) => {
-    poseesContainer.appendChild(createCard(txt, i, (i) => socket.emit("voter", i)));
+    poseesContainer.appendChild(createCard(txt, i, i => socket.emit("voter", i)));
   });
 });
 
-/* NOUVELLE MANCHE */
-socket.on("nouveauTour", data => {
+/* NOUVEAU TOUR */
+socket.on("nouveauTour", () => {
   poseesContainer.innerHTML = "";
-  socket.emit("rejoindreSalon", pseudo);
 });
+
 </script>
 
 </body>
