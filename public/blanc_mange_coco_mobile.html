@@ -72,9 +72,8 @@ body {
   background-size: 100% 100%;
   border-radius: 12px;
   display: inline-block;
-  position: relative;
+  position: relative;            /* ← IMPORTANT */
 }
-
 .carteTexte {
   position: absolute;
   top: 8px;
@@ -83,8 +82,10 @@ body {
   color: black;
   font-size: 0.9rem;
   font-family: Arial, sans-serif;
-  text-align: left;
+  z-index: 10;                   /* ← RAJOUT */
+  pointer-events: none;
 }
+
 
 /* ------------------------------------------------ */
 /* ---------------- MAIN DU JOUEUR ---------------- */
