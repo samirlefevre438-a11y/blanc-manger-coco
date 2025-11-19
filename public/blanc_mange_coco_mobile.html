@@ -1,421 +1,415 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>Blanc Mangé Coco • Mobile</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Blanc Mangé Coco — Mobile</title>
 
 <style>
-/* ------------------------------------------------ */
-/* -------------------- VARIABLES ------------------ */
-/* ------------------------------------------------ */
-:root {
-  --vert: #0DFF8A;
-  --fond: #0A0A0A;
-  --fond2: #111;
-  --carteW: 150px;
-  --carteH: 210px;
-}
+/* dynamic vh fix for mobile browser chrome/url bar */
+:root { --vh: 1vh; --vert: #0DFF8A; --bg:#06120b; --bg2:#0b1a13; --cardW:150px; --cardH:210px; }
+function{} /*noop to avoid some linters*/ 
+html,body{height:calc(var(--vh)*100);}
 
-/* ------------------------------------------------ */
-/* ------------------- GLOBAL ---------------------- */
-/* ------------------------------------------------ */
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--fond);
+body{
+  margin:0;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:var(--bg);
+  color:var(--vert);
   font-family: "Madloud", Arial, sans-serif;
-  color: white;
-  overflow: hidden;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Police MADLOUD (interface uniquement) */
-@font-face {
-  font-family: "Madloud";
-  src: url("madloud.ttf");
+/* load local Madloud (put madloud.ttf in /public) */
+@font-face { font-family: "Madloud"; src: url("madloud.ttf") format("truetype"); font-weight: normal; font-style: normal; }
+
+/* layout */
+#app { display:flex; flex-direction:column; height:calc(var(--vh)*100); box-sizing:border-box; }
+
+/* QUESTION BAR (fixed at top) */
+#questionBar {
+  background:var(--bg2);
+  border-bottom:3px solid var(--vert);
+  padding:12px 14px;
+  text-align:center;
+  font-size:1.25rem;
+  box-sizing:border-box;
+  z-index:30;
+  flex:0 0 auto;
 }
 
-/* ------------------------------------------------ */
-/* -------------- ZONE QUESTION -------------------- */
-/* ------------------------------------------------ */
-#questionBox {
-  width: 100%;
-  text-align: center;
-  padding: 10px;
-  font-size: 1.2rem;
-  background: var(--fond2);
-  border-bottom: 2px solid var(--vert);
-  height: 70px;
-  box-sizing: border-box;
+/* content area between question and bottom players bar */
+#content {
+  position:relative;
+  flex:1 1 auto;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 
-/* ------------------------------------------------ */
-/* -------------- CARTES POSÉES -------------------- */
-/* ------------------------------------------------ */
-#cartesPosees {
+/* CARDS POSED area (horizontal scroll) */
+#posedZone {
+  box-sizing:border-box;
+  padding:12px;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  flex:1 0 auto;
+}
+
+/* PLAYER HAND area (bottom above playersBar) */
+#handZone {
+  box-sizing:border-box;
+  padding:10px;
+  border-top:3px solid rgba(13,255,138,0.12);
+  background:rgba(0,0,0,0.25);
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  flex:0 0 auto;
+  height: calc(var(--cardH) * 0.9 + 20px);
+  align-items:flex-start;
+}
+
+/* players bar at absolute bottom */
+#playersBar {
   position: absolute;
-  top: 70px;
-  bottom: 140px;
-  left: 0;
-  right: 0;
-  overflow-x: auto;
-  white-space: nowrap;
-  padding: 10px;
-  display: flex;
-  gap: 12px;
+  left:0; right:0; bottom:0;
+  height:52px;
+  background:rgba(0,0,0,0.85);
+  border-top:2px solid var(--vert);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  overflow-x:auto;
+  box-sizing:border-box;
+  z-index:40;
+  font-family:Arial, sans-serif;
 }
 
-.cartePosee {
-  width: var(--carteW);
-  height: var(--carteH);
+/* ensure content bottom spacing so handZone not hidden by playersBar */
+.spacer-bottom { height: 52px; flex:0 0 auto; }
+
+/* CARD styles (common for posed & hand) */
+/* card container uses background image and text sits on top (z-index) */
+.card {
+  width: var(--cardW);
+  height: var(--cardH);
+  flex:0 0 auto;
   background-image: url("carte.png");
-  background-size: 100% 100%;
-  border-radius: 12px;
-  display: inline-block;
-  position: relative;            /* ← IMPORTANT */
+  background-size: cover;
+  background-position: center;
+  border-radius:12px;
+  border: 2px solid rgba(13,255,138,0.12);
+  position:relative; /* IMPORTANT so text is above */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start; /* text at top */
+  padding:10px;
+  box-sizing:border-box;
+  cursor:pointer;
+  -webkit-user-select:none;
 }
-.carteTexte {
-  position: absolute;
-  top: 8px;
-  left: 6px;
-  right: 6px;
-  color: black;
-  font-size: 0.9rem;
+
+/* text box on top with padding (Option B) */
+.card .card-text {
+  background: rgba(255,255,255,0.92); /* light box for readability */
+  color: #04120a; /* dark text for contrast */
+  padding:6px 8px;
+  border-radius:8px;
   font-family: Arial, sans-serif;
-  z-index: 10;                   /* ← RAJOUT */
-  pointer-events: none;
+  font-size:0.85rem;
+  line-height:1.05rem;
+  max-height: calc(var(--cardH) * 0.45);
+  overflow:hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  z-index:12;
+  pointer-events:none;
 }
 
+/* small responsive tweak: more visible border */
+.card:active { transform: translateY(-2px) scale(0.995); }
 
-/* ------------------------------------------------ */
-/* ---------------- MAIN DU JOUEUR ---------------- */
-/* ------------------------------------------------ */
-
-#mainJoueur {
-  position: absolute;
-  bottom: 50px;
-  left: 0;
-  right: 0;
-  height: 160px;
-  overflow-x: auto;
-  white-space: nowrap;
-  display: flex;
-  gap: 12px;
-  padding: 10px;
+/* chat & params floating tabs (compact) */
+.tab {
+  position:fixed;
+  z-index:60;
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  color:#04120a;
+  background:var(--vert);
+  box-shadow:0 8px 20px rgba(13,255,138,0.12);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.carteMain {
-  width: calc(var(--carteW) * 0.9);
-  height: calc(var(--carteH) * 0.9);
-  background-image: url("carte.png");
-  background-size: 100% 100%;
-  border-radius: 10px;
-  position: relative;
-  display: inline-block;
+#chatTab { right:14px; bottom:70px; }
+#paramTab { right:14px; bottom:14px; }
+
+/* panels */
+.panel {
+  position:fixed;
+  z-index:70;
+  right:12px;
+  width:300px;
+  max-width:86vw;
+  background:var(--bg2);
+  border:2px solid var(--vert);
+  border-radius:12px;
+  box-shadow:0 18px 40px rgba(0,0,0,0.6);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
 }
 
-.carteMainTexte {
-  position: absolute;
-  top: 6px;
-  left: 5px;
-  right: 5px;
-  font-size: 0.85rem;
-  color: black;
-  font-family: Arial, sans-serif;
-}
+#chatPanel { bottom:128px; height:360px; }
+#paramPanel { bottom:128px; height:auto; padding:12px; }
 
-/* ------------------------------------------------ */
-/* ------------------- CHAT ------------------------ */
-/* ------------------------------------------------ */
+/* chat styling */
+#chatMessages { flex:1; overflow:auto; padding:10px; font-family:Arial, sans-serif; color:white; }
+.chatInputRow { display:flex; gap:8px; padding:10px; background:rgba(0,0,0,0.06); }
+.chatInput { flex:1; padding:10px; border-radius:8px; border:none; font-size:0.95rem; }
 
-#chatBtn {
-  position: absolute;
-  bottom: 55px;
-  right: 15px;
-  width: 55px;
-  height: 55px;
-  background: var(--vert);
-  color: black;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 55px;
-  font-size: 28px;
-  z-index: 1200;
-  box-shadow: 0 0 10px var(--vert);
-}
+/* param button style */
+.paramBtn { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:none; background:var(--vert); color:#04120a; font-size:1rem; }
 
-#chatWindow {
-  position: absolute;
-  bottom: 125px;
-  right: 10px;
-  width: 260px;
-  height: 300px;
-  background: var(--fond2);
-  border: 2px solid var(--vert);
-  border-radius: 10px;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 1500;
-}
+/* players item */
+.playerItem { background:var(--bg2); border:1px solid rgba(13,255,138,0.12); padding:6px 10px; border-radius:8px; color:var(--vert); white-space:nowrap; font-family:Arial, sans-serif; font-size:0.9rem; }
 
-#chatMessages {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-  font-size: 0.9rem;
-}
-
-#chatInput {
-  width: 100%;
-  height: 35px;
-  border: none;
-  outline: none;
-  padding-left: 8px;
-  font-size: 0.9rem;
-}
-
-/* ------------------------------------------------ */
-/* ---------------- PARAMÈTRES --------------------- */
-/* ------------------------------------------------ */
-
-#paramBtn {
-  position: absolute;
-  bottom: 55px;
-  left: 15px;
-  width: 55px;
-  height: 55px;
-  background: var(--vert);
-  color: black;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 55px;
-  font-size: 28px;
-  z-index: 1200;
-  box-shadow: 0 0 10px var(--vert);
-}
-
-#paramWindow {
-  position: absolute;
-  bottom: 125px;
-  left: 10px;
-  width: 260px;
-  background: var(--fond2);
-  border: 2px solid var(--vert);
-  border-radius: 10px;
-  padding: 10px;
-  display: none;
-  z-index: 1500;
-}
-
-.paramBtn {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  background: var(--vert);
-  color: black;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-}
-
-/* ------------------------------------------------ */
-/* -------- BARRE DES JOUEURS EN BAS -------------- */
-/* ------------------------------------------------ */
-
-#joueursBar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
-  background: rgba(0,0,0,0.85);
-  border-top: 2px solid var(--vert);
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  align-items: center;
-  padding: 5px 10px;
-  box-sizing: border-box;
-  font-size: 0.9rem;
-}
-
-.joueurItem {
-  background: var(--fond2);
-  border: 1px solid var(--vert);
-  color: var(--vert);
-  padding: 5px 10px;
-  border-radius: 10px;
-  white-space: nowrap;
-  font-family: Arial, sans-serif;
-}
+/* small helpers */
+.hidden { display:none !important; }
 </style>
 </head>
-
 <body>
+<div id="app">
+  <div id="questionBar">Chargement…</div>
 
-<div id="questionBox">Chargement...</div>
-<div id="cartesPosees"></div>
-<div id="mainJoueur"></div>
+  <div id="content">
+    <div id="posedZone" aria-live="polite"></div>
 
-<!-- CHAT -->
-<div id="chatBtn">💬</div>
-<div id="chatWindow">
+    <!-- hand zone sits above playersBar: to avoid overlap we add spacer and playersBar is absolute -->
+    <div id="handZone"></div>
+    <div class="spacer-bottom"></div>
+  </div>
+
+  <!-- players bar fixed at bottom -->
+  <div id="playersBar" aria-hidden="false"></div>
+</div>
+
+<!-- floating tabs -->
+<button id="chatTab" class="tab">💬</button>
+<button id="paramTab" class="tab">⚙️</button>
+
+<!-- chat panel -->
+<div id="chatPanel" class="panel" role="dialog" aria-label="Chat">
   <div id="chatMessages"></div>
-  <input id="chatInput" placeholder="Message..." />
+  <div class="chatInputRow">
+    <input id="chatInput" class="chatInput" placeholder="Écrire un message…" />
+    <button id="sendChatBtn" class="paramBtn">Envoyer</button>
+  </div>
 </div>
 
-<!-- PARAMETRES -->
-<div id="paramBtn">⚙</div>
-<div id="paramWindow">
-  <button class="paramBtn" id="btnChangerQuestion">Changer la carte</button>
-  <button class="paramBtn" id="btnChangerMain">Changer de main</button>
-  <button class="paramBtn" id="btnQuitter">Quitter</button>
+<!-- param panel -->
+<div id="paramPanel" class="panel">
+  <button id="btnChangeQuestion" class="paramBtn">Changer la carte</button>
+  <button id="btnChangeHand" class="paramBtn">Changer la main</button>
+  <button id="btnQuit" class="paramBtn">Quitter</button>
+  <button id="btnCloseParam" class="paramBtn" style="background:#333;color:var(--vert);">Fermer</button>
 </div>
-
-<!-- JOUEURS EN BAS -->
-<div id="joueursBar"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+/* --- viewport vh fix (must run early) --- */
+function updateVh(){
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+updateVh();
+window.addEventListener('resize', updateVh);
+window.addEventListener('orientationchange', updateVh);
+
+/* --- DOM refs --- */
+const questionBar = document.getElementById('questionBar');
+const posedZone = document.getElementById('posedZone');
+const handZone = document.getElementById('handZone');
+const playersBar = document.getElementById('playersBar');
+
+const chatTab = document.getElementById('chatTab');
+const paramTab = document.getElementById('paramTab');
+const chatPanel = document.getElementById('chatPanel');
+const paramPanel = document.getElementById('paramPanel');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+
+const btnChangeQuestion = document.getElementById('btnChangeQuestion');
+const btnChangeHand = document.getElementById('btnChangeHand');
+const btnQuit = document.getElementById('btnQuit');
+const btnCloseParam = document.getElementById('btnCloseParam');
+
+/* --- socket --- */
 const socket = io();
 
-/* Elements DOM */
-const questionBox = document.getElementById("questionBox");
-const cartesPosees = document.getElementById("cartesPosees");
-const mainJoueur = document.getElementById("mainJoueur");
+/* keep track of my pseudo so we don't prompt repeatedly */
+let myPseudo = null;
+function askPseudo(){
+  if(myPseudo) return;
+  myPseudo = prompt("Choisis un pseudo :");
+  if(!myPseudo) myPseudo = 'Player'+Math.floor(Math.random()*1000);
+  socket.emit('rejoindreSalon', myPseudo);
+}
+setTimeout(askPseudo,200);
 
-const chatBtn = document.getElementById("chatBtn");
-const chatWindow = document.getElementById("chatWindow");
-const chatMessages = document.getElementById("chatMessages");
-const chatInput = document.getElementById("chatInput");
+/* --- UI toggle handlers --- */
+chatTab.addEventListener('click',()=> {
+  chatPanel.style.display = chatPanel.style.display === 'flex' ? 'none' : 'flex';
+  paramPanel.style.display = 'none';
+});
+paramTab.addEventListener('click',()=> {
+  paramPanel.style.display = paramPanel.style.display === 'flex' ? 'none' : 'flex';
+  chatPanel.style.display = 'none';
+});
 
-const paramBtn = document.getElementById("paramBtn");
-const paramWindow = document.getElementById("paramWindow");
+/* send chat */
+function sendChat(){
+  const v = chatInput.value.trim();
+  if(!v) return;
+  socket.emit('chatMessage', v);
+  chatInput.value='';
+}
+sendChatBtn.addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e=> { if(e.key==='Enter') sendChat(); });
 
-const joueursBar = document.getElementById("joueursBar");
+/* --- helpers to create card nodes --- */
+function makeCard(text, idx, clickHandler){
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.dataset.index = idx;
+  // text container (Option B: padding + top)
+  const txt = document.createElement('div');
+  txt.className = 'card-text';
+  txt.textContent = text;
+  el.appendChild(txt);
+  if(clickHandler){
+    el.addEventListener('click', ()=> clickHandler(Number(el.dataset.index)));
+  }
+  return el;
+}
 
-/* ------------------------------------------------ */
-/* -------------- INTERFACE ELEMENTAIRE ----------- */
-/* ------------------------------------------------ */
-chatBtn.onclick = () => {
-  chatWindow.style.display = chatWindow.style.display === "flex" ? "none" : "flex";
-};
+/* --- rendering handlers using deterministic indexes --- */
+socket.on('question', q => {
+  questionBar.textContent = q || '...';
+});
 
-paramBtn.onclick = () => {
-  paramWindow.style.display = paramWindow.style.display === "block" ? "none" : "block";
-};
+/* render my hand: each card clickable to poser by index */
+socket.on('main', hand => {
+  handZone.innerHTML = '';
+  hand.forEach((txt,i)=>{
+    const card = makeCard(txt, i, (index)=> socket.emit('poserCarteIndex', index));
+    card.classList.add('hand-card');
+    handZone.appendChild(card);
+  });
+  // ensure hand not hidden by players bar: scroll to start
+  handZone.scrollLeft = 0;
+});
 
-/* ------------------------------------------------ */
-/* ---------------- CHAT -------------------------- */
-/* ------------------------------------------------ */
-chatInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && chatInput.value.trim() !== "") {
-    socket.emit("chatMessage", chatInput.value);
-    chatInput.value = "";
+/* render cards posed (non-vote) */
+socket.on('cartesPosees', list => {
+  posedZone.innerHTML = '';
+  list.forEach((cObj,i)=>{
+    const txt = (typeof cObj === 'string') ? cObj : (cObj.carte || '');
+    const card = makeCard(txt, i);
+    posedZone.appendChild(card);
+  });
+  posedZone.scrollLeft = 0;
+});
+
+/* phase vote: replace posed zone with clickable vote cards */
+socket.on('phaseVote', cards => {
+  posedZone.innerHTML = '';
+  cards.forEach((txt,i)=>{
+    const card = makeCard(txt, i, (index) => {
+      socket.emit('voter', index);
+      // local feedback
+      card.style.boxShadow = '0 0 18px rgba(13,255,138,0.35)';
+    });
+    posedZone.appendChild(card);
+  });
+  posedZone.scrollLeft = 0;
+});
+
+/* nouveau tour: server sends nouveauTour with salon and gagnants optionally */
+socket.on('nouveauTour', data => {
+  // Clear posed cards, server will send new main events
+  posedZone.innerHTML = '';
+  // If server provided updated salon mains, the 'main' event will arrive; otherwise request
+  if(data && data.salon && data.salon.joueurs && socket.id){
+    const me = data.salon.joueurs[socket.id];
+    if(me && me.main) {
+      // some servers may send arrays; handle carefully
+      socket.emit('rejoindreSalon', myPseudo); // trigger to refresh main (server logic)
+    }
   }
 });
 
-socket.on("chatMessage", msg => {
-  const div = document.createElement("div");
-  div.textContent = msg;
-  chatMessages.appendChild(div);
+/* chat messages */
+socket.on('chatMessage', msg => {
+  const d = document.createElement('div');
+  d.textContent = msg;
+  chatMessages.appendChild(d);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-/* ------------------------------------------------ */
-/* ------------------- JEU ------------------------ */
-/* ------------------------------------------------ */
-
-socket.on("question", txt => {
-  questionBox.textContent = txt;
-});
-
-socket.on("main", cartes => {
-  mainJoueur.innerHTML = "";
-  cartes.forEach((texte, index) => {
-    const c = document.createElement("div");
-    c.className = "carteMain";
-    c.onclick = () => socket.emit("poserCarteIndex", index);
-
-    const t = document.createElement("div");
-    t.className = "carteMainTexte";
-    t.textContent = texte;
-
-    c.appendChild(t);
-    mainJoueur.appendChild(c);
+/* players list updates (etatSalon) */
+socket.on('etatSalon', salon => {
+  playersBar.innerHTML = '';
+  Object.values(salon.joueurs || {}).forEach(j => {
+    const item = document.createElement('div');
+    item.className = 'playerItem';
+    item.textContent = `${j.pseudo} • ${j.points}pt`;
+    playersBar.appendChild(item);
   });
 });
 
-socket.on("cartesPosees", cartes => {
-  cartesPosees.innerHTML = "";
-  cartes.forEach(carte => {
-    const c = document.createElement("div");
-    c.className = "cartePosee";
+/* --- param buttons actions --- */
+btnChangeQuestion.addEventListener('click', ()=> { socket.emit('changerQuestion'); paramPanel.style.display='none'; });
+btnChangeHand.addEventListener('click', ()=> { socket.emit('changerMain'); paramPanel.style.display='none'; });
+btnQuit.addEventListener('click', ()=> { socket.emit('deconnexion'); window.location.href='index.html'; });
+btnCloseParam.addEventListener('click', ()=> paramPanel.style.display='none');
 
-    const t = document.createElement("div");
-    t.className = "carteTexte";
-    t.textContent = carte.carte;
+/* safeguard: if image missing, show simple fallback card text (optional) */
+function checkCardImage(){
+  const img = new Image();
+  img.onload = ()=>{/* ok */};
+  img.onerror = ()=>{
+    // replace CSS backgrounds with simple pale card color
+    const style = document.createElement('style');
+    style.innerHTML = `.card{ background-image:none; background-color:#e6f9ee; border:2px solid rgba(13,255,138,0.18); } .card .card-text{ background:transparent; color:#04120a; }`;
+    document.head.appendChild(style);
+  };
+  img.src = 'carte.png';
+}
+checkCardImage();
 
-    c.appendChild(t);
-    cartesPosees.appendChild(c);
-  });
+/* ensure we re-request pseudo if reload */
+window.addEventListener('beforeunload', ()=> {
+  try{ socket.emit('deconnexion'); }catch(e){}
 });
 
-/* Vote */
-socket.on("phaseVote", cartes => {
-  cartesPosees.innerHTML = "";
-  cartes.forEach((texte, index) => {
-    const c = document.createElement("div");
-    c.className = "cartePosee";
-    c.onclick = () => socket.emit("voter", index);
-
-    const t = document.createElement("div");
-    t.className = "carteTexte";
-    t.textContent = texte;
-
-    c.appendChild(t);
-    cartesPosees.appendChild(c);
-  });
-});
-
-/* ------------------------------------------------ */
-/* -------------- PARAMETRES ---------------------- */
-/* ------------------------------------------------ */
-
-document.getElementById("btnChangerQuestion").onclick = () => {
-  socket.emit("changerQuestion");
-};
-
-document.getElementById("btnChangerMain").onclick = () => {
-  socket.emit("changerMain");
-};
-
-document.getElementById("btnQuitter").onclick = () => {
-  socket.emit("deconnexion");
-  window.location.href = "index.html";
-};
-
-/* ------------------------------------------------ */
-/* ------------ JOUEURS + POINTS ------------------ */
-/* ------------------------------------------------ */
-
-socket.on("etatSalon", salon => {
-  joueursBar.innerHTML = "";
-  Object.values(salon.joueurs).forEach(j => {
-    const div = document.createElement("div");
-    div.className = "joueurItem";
-    div.textContent = `${j.pseudo} : ${j.points}`;
-    joueursBar.appendChild(div);
-  });
-});
-
-/* Rejoindre */
-setTimeout(() => {
-  const pseudo = prompt("Choisis un pseudo :");
-  if (pseudo) socket.emit("rejoindreSalon", pseudo);
-}, 300);
-
+/* small: make sure taps are crisp */
+document.addEventListener('touchstart', ()=>{}, {passive:true});
 </script>
 </body>
 </html>
