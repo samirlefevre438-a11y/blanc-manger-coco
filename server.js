@@ -46,18 +46,24 @@ const salon = {
 // --- Fonctions utilitaires ---
 function tirerMainsUnique(nbParJoueur){
   let pile = [...cartes];
-  pile.sort(()=>Math.random()-0.5);
+  // Mélange complet de la pile
+  pile.sort(() => Math.random() - 0.5);
+  
   const mains = {};
   const ids = Object.keys(salon.joueurs);
   
+  console.log(`🎴 Distribution de ${nbParJoueur} cartes à ${ids.length} joueurs`);
+  console.log(`📦 Cartes disponibles: ${pile.length}`);
+  
   for(const id of ids){
     mains[id] = [];
-    for(let i=0; i<nbParJoueur && pile.length>0; i++){
-      const index = Math.floor(Math.random()*pile.length);
-      mains[id].push(pile[index]);
-      pile.splice(index,1);
+    for(let i = 0; i < nbParJoueur && pile.length > 0; i++){
+      // Prendre depuis le début de la pile déjà mélangée
+      mains[id].push(pile.shift());
     }
+    console.log(`   ✓ ${salon.joueurs[id]?.pseudo}: ${mains[id].length} cartes`);
   }
+  
   return mains;
 }
 
@@ -95,6 +101,7 @@ function nouveauTour(){
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
   
+  // Redonne 7 nouvelles cartes à chaque joueur
   const mains = tirerMainsUnique(7);
   Object.entries(salon.joueurs).forEach(([id,j])=>{
     j.main = mains[id] || [];
@@ -103,11 +110,17 @@ function nouveauTour(){
   });
   
   nouvelleQuestion();
+  
+  // Envoyer l'état mis à jour
   io.emit("etatSalon", salon);
   io.emit("question", salon.questionActuelle);
+  
+  // Envoyer les nouvelles mains à chaque joueur
   Object.entries(salon.joueurs).forEach(([id,j])=> {
     io.to(id).emit("main", j.main);
   });
+  
+  console.log("🔄 Nouveau tour démarré - cartes redistribuées");
 }
 
 // --- Connexion socket ---
@@ -212,9 +225,15 @@ io.on("connection", socket=>{
     salon.cartesPosees[index].votes += 1;
     j.vote = index;
 
+    console.log(`✅ ${j.pseudo} a voté pour la carte ${index}`);
+
     // Vérifier si tout le monde a voté
-    const joueursActifs = Object.values(salon.joueurs).filter(j => j.main.length >= 0);
-    if(joueursActifs.every(j => j.vote !== null)){
+    const joueursActifs = Object.values(salon.joueurs);
+    const tousOntVote = joueursActifs.every(joueur => joueur.vote !== null);
+    
+    console.log(`📊 Votes: ${joueursActifs.filter(joueur => joueur.vote !== null).length}/${joueursActifs.length}`);
+    
+    if(tousOntVote){
       salon.phase = "resultat";
       
       let maxVotes = Math.max(...salon.cartesPosees.map(c => c.votes));
@@ -243,6 +262,8 @@ io.on("connection", socket=>{
       // Annoncer le(s) gagnant(s)
       const nomsGagnants = gagnantsData.map(g => g.pseudo).join(", ");
       io.emit("chatMessage", `🏆 ${nomsGagnants} ${gagnants.length > 1 ? 'ont gagné' : 'a gagné'} ce tour !`);
+
+      console.log("🏆 Gagnants:", nomsGagnants);
 
       // Nouveau tour après 3 secondes
       setTimeout(() => {

@@ -434,8 +434,20 @@ socket.on('question', q => {
 });
 
 socket.on('main', hand => {
+  console.log('📥 Nouvelles cartes reçues:', hand.length);
   handZone.innerHTML = '';
   hasVoted = false;
+  
+  if(hand.length === 0){
+    const msg = document.createElement('div');
+    msg.style.color = 'var(--vert)';
+    msg.style.padding = '20px';
+    msg.style.textAlign = 'center';
+    msg.textContent = 'En attente de cartes...';
+    handZone.appendChild(msg);
+    return;
+  }
+  
   hand.forEach((txt, i) => {
     const card = makeCard(txt, i, (index) => {
       socket.emit('poserCarteIndex', index);
@@ -490,8 +502,10 @@ socket.on('resultatVote', data => {
 });
 
 socket.on('nouveauTour', data => {
+  console.log('🔄 Nouveau tour !');
   posedZone.innerHTML = '';
   hasVoted = false;
+  showToast('🎴 Nouveau tour - nouvelles cartes !', 2000);
 });
 
 socket.on('chatMessage', msg => {
