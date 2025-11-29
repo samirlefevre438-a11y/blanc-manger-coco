@@ -6,190 +6,296 @@
 <title>Blanc Mangé Coco — Mobile</title>
 
 <style>
-/* dynamic vh fix for mobile browser chrome/url bar */
-:root { --vh: 1vh; --vert: #0DFF8A; --bg:#06120b; --bg2:#0b1a13; --cardW:150px; --cardH:210px; }
-function{} /*noop to avoid some linters*/ 
-html,body{height:calc(var(--vh)*100);}
+:root { 
+  --vh: 1vh; 
+  --vert: #0DFF8A; 
+  --bg: #06120b; 
+  --bg2: #0b1a13; 
+  --cardW: 150px; 
+  --cardH: 210px; 
+}
 
-body{
-  margin:0;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background:var(--bg);
-  color:var(--vert);
-  font-family: "Madloud", Arial, sans-serif;
-  -webkit-font-smoothing:antialiased;
-  overflow:hidden;
-  touch-action:manipulation;
+html, body {
+  height: calc(var(--vh) * 100);
+}
+
+body {
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: var(--bg);
+  color: var(--vert);
+  font-family: "TFMadloud", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* load local Madloud (put madloud.ttf in /public) */
-@font-face { font-family: "Madloud"; src: url("madloud.ttf") format("truetype"); font-weight: normal; font-style: normal; }
+@font-face { 
+  font-family: "TFMadloud"; 
+  src: url("fonts/TF-Madloud.ttf") format("truetype"); 
+  font-weight: normal; 
+  font-style: normal; 
+}
 
-/* layout */
-#app { display:flex; flex-direction:column; height:calc(var(--vh)*100); box-sizing:border-box; }
+#app { 
+  display: flex; 
+  flex-direction: column; 
+  height: calc(var(--vh) * 100); 
+  box-sizing: border-box; 
+}
 
-/* QUESTION BAR (fixed at top) */
 #questionBar {
-  background:var(--bg2);
-  border-bottom:3px solid var(--vert);
-  padding:12px 14px;
-  text-align:center;
-  font-size:1.25rem;
-  box-sizing:border-box;
-  z-index:30;
-  flex:0 0 auto;
+  background: var(--bg2);
+  border-bottom: 3px solid var(--vert);
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 1.25rem;
+  box-sizing: border-box;
+  z-index: 30;
+  flex: 0 0 auto;
 }
 
-/* content area between question and bottom players bar */
 #content {
-  position:relative;
-  flex:1 1 auto;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* CARDS POSED area (horizontal scroll) */
 #posedZone {
-  box-sizing:border-box;
-  padding:12px;
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
-  overflow-x:auto;
-  overflow-y:hidden;
-  white-space:nowrap;
-  flex:1 0 auto;
+  box-sizing: border-box;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  flex: 1 0 auto;
 }
 
-/* PLAYER HAND area (bottom above playersBar) */
 #handZone {
-  box-sizing:border-box;
-  padding:10px;
-  border-top:3px solid rgba(13,255,138,0.12);
-  background:rgba(0,0,0,0.25);
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  flex:0 0 auto;
+  box-sizing: border-box;
+  padding: 10px;
+  border-top: 3px solid rgba(13,255,138,0.12);
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  flex: 0 0 auto;
   height: calc(var(--cardH) * 0.9 + 20px);
-  align-items:flex-start;
+  align-items: flex-start;
 }
 
-/* players bar at absolute bottom */
 #playersBar {
   position: absolute;
-  left:0; right:0; bottom:0;
-  height:52px;
-  background:rgba(0,0,0,0.85);
-  border-top:2px solid var(--vert);
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:6px 10px;
-  overflow-x:auto;
-  box-sizing:border-box;
-  z-index:40;
-  font-family:Arial, sans-serif;
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  height: 52px;
+  background: rgba(0,0,0,0.85);
+  border-top: 2px solid var(--vert);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  overflow-x: auto;
+  box-sizing: border-box;
+  z-index: 40;
+  font-family: Arial, sans-serif;
 }
 
-/* ensure content bottom spacing so handZone not hidden by playersBar */
-.spacer-bottom { height: 52px; flex:0 0 auto; }
+.spacer-bottom { 
+  height: 52px; 
+  flex: 0 0 auto; 
+}
 
-/* CARD styles (common for posed & hand) */
-/* card container uses background image and text sits on top (z-index) */
 .card {
   width: var(--cardW);
   height: var(--cardH);
-  flex:0 0 auto;
+  flex: 0 0 auto;
   background-image: url("carte.png");
   background-size: cover;
   background-position: center;
-  border-radius:12px;
+  border-radius: 12px;
   border: 2px solid rgba(13,255,138,0.12);
-  position:relative; /* IMPORTANT so text is above */
+  position: relative;
   box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start; /* text at top */
-  padding:10px;
-  box-sizing:border-box;
-  cursor:pointer;
-  -webkit-user-select:none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  -webkit-user-select: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* text box on top with padding (Option B) */
+.card.voted {
+  border: 3px solid var(--vert);
+  box-shadow: 0 0 25px rgba(13,255,138,0.6);
+}
+
+.card.winner {
+  border: 3px solid gold;
+  box-shadow: 0 0 30px rgba(255,215,0,0.8);
+}
+
 .card .card-text {
-  background: rgba(255,255,255,0.92); /* light box for readability */
-  color: #04120a; /* dark text for contrast */
-  padding:6px 8px;
-  border-radius:8px;
+  background: rgba(255,255,255,0.92);
+  color: #04120a;
+  padding: 6px 8px;
+  border-radius: 8px;
   font-family: Arial, sans-serif;
-  font-size:0.85rem;
-  line-height:1.05rem;
+  font-size: 0.85rem;
+  line-height: 1.05rem;
   max-height: calc(var(--cardH) * 0.45);
-  overflow:hidden;
+  overflow: hidden;
   box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  z-index:12;
-  pointer-events:none;
+  z-index: 12;
+  pointer-events: none;
 }
 
-/* small responsive tweak: more visible border */
-.card:active { transform: translateY(-2px) scale(0.995); }
+.card .card-author {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.7);
+  color: var(--vert);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-family: Arial, sans-serif;
+}
 
-/* chat & params floating tabs (compact) */
+.card:active { 
+  transform: translateY(-2px) scale(0.995); 
+}
+
 .tab {
-  position:fixed;
-  z-index:60;
-  width:48px;
-  height:48px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-  color:#04120a;
-  background:var(--vert);
-  box-shadow:0 8px 20px rgba(13,255,138,0.12);
+  position: fixed;
+  z-index: 60;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #04120a;
+  background: var(--vert);
+  box-shadow: 0 8px 20px rgba(13,255,138,0.12);
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 
-#chatTab { right:14px; bottom:70px; }
-#paramTab { right:14px; bottom:14px; }
+#chatTab { 
+  right: 14px; 
+  bottom: 70px; 
+}
 
-/* panels */
+#paramTab { 
+  right: 14px; 
+  bottom: 14px; 
+}
+
 .panel {
-  position:fixed;
-  z-index:70;
-  right:12px;
-  width:300px;
-  max-width:86vw;
-  background:var(--bg2);
-  border:2px solid var(--vert);
-  border-radius:12px;
-  box-shadow:0 18px 40px rgba(0,0,0,0.6);
-  display:none;
-  flex-direction:column;
-  overflow:hidden;
+  position: fixed;
+  z-index: 70;
+  right: 12px;
+  width: 300px;
+  max-width: 86vw;
+  background: var(--bg2);
+  border: 2px solid var(--vert);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-#chatPanel { bottom:128px; height:360px; }
-#paramPanel { bottom:128px; height:auto; padding:12px; }
+#chatPanel { 
+  bottom: 128px; 
+  height: 360px; 
+}
 
-/* chat styling */
-#chatMessages { flex:1; overflow:auto; padding:10px; font-family:Arial, sans-serif; color:white; }
-.chatInputRow { display:flex; gap:8px; padding:10px; background:rgba(0,0,0,0.06); }
-.chatInput { flex:1; padding:10px; border-radius:8px; border:none; font-size:0.95rem; }
+#paramPanel { 
+  bottom: 128px; 
+  height: auto; 
+  padding: 12px; 
+}
 
-/* param button style */
-.paramBtn { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:none; background:var(--vert); color:#04120a; font-size:1rem; }
+#chatMessages { 
+  flex: 1; 
+  overflow: auto; 
+  padding: 10px; 
+  font-family: Arial, sans-serif; 
+  color: white; 
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
 
-/* players item */
-.playerItem { background:var(--bg2); border:1px solid rgba(13,255,138,0.12); padding:6px 10px; border-radius:8px; color:var(--vert); white-space:nowrap; font-family:Arial, sans-serif; font-size:0.9rem; }
+.chatInputRow { 
+  display: flex; 
+  gap: 8px; 
+  padding: 10px; 
+  background: rgba(0,0,0,0.06); 
+}
 
-/* small helpers */
-.hidden { display:none !important; }
+.chatInput { 
+  flex: 1; 
+  padding: 10px; 
+  border-radius: 8px; 
+  border: none; 
+  font-size: 0.95rem; 
+}
+
+.paramBtn { 
+  width: 100%; 
+  padding: 10px; 
+  margin: 6px 0; 
+  border-radius: 8px; 
+  border: none; 
+  background: var(--vert); 
+  color: #04120a; 
+  font-size: 1rem; 
+  cursor: pointer;
+  font-family: "TFMadloud", Arial, sans-serif;
+}
+
+.playerItem { 
+  background: var(--bg2); 
+  border: 1px solid rgba(13,255,138,0.12); 
+  padding: 6px 10px; 
+  border-radius: 8px; 
+  color: var(--vert); 
+  white-space: nowrap; 
+  font-family: Arial, sans-serif; 
+  font-size: 0.9rem; 
+}
+
+.hidden { 
+  display: none !important; 
+}
+
+/* Toast notification */
+#toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 255, 138, 0.95);
+  color: #04120a;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  z-index: 100;
+  display: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
 </style>
 </head>
 <body>
@@ -198,21 +304,16 @@ body{
 
   <div id="content">
     <div id="posedZone" aria-live="polite"></div>
-
-    <!-- hand zone sits above playersBar: to avoid overlap we add spacer and playersBar is absolute -->
     <div id="handZone"></div>
     <div class="spacer-bottom"></div>
   </div>
 
-  <!-- players bar fixed at bottom -->
   <div id="playersBar" aria-hidden="false"></div>
 </div>
 
-<!-- floating tabs -->
 <button id="chatTab" class="tab">💬</button>
 <button id="paramTab" class="tab">⚙️</button>
 
-<!-- chat panel -->
 <div id="chatPanel" class="panel" role="dialog" aria-label="Chat">
   <div id="chatMessages"></div>
   <div class="chatInputRow">
@@ -221,7 +322,6 @@ body{
   </div>
 </div>
 
-<!-- param panel -->
 <div id="paramPanel" class="panel">
   <button id="btnChangeQuestion" class="paramBtn">Changer la carte</button>
   <button id="btnChangeHand" class="paramBtn">Changer la main</button>
@@ -229,9 +329,11 @@ body{
   <button id="btnCloseParam" class="paramBtn" style="background:#333;color:var(--vert);">Fermer</button>
 </div>
 
+<div id="toast"></div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* --- viewport vh fix (must run early) --- */
+/* Viewport fix */
 function updateVh(){
   let vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -240,12 +342,11 @@ updateVh();
 window.addEventListener('resize', updateVh);
 window.addEventListener('orientationchange', updateVh);
 
-/* --- DOM refs --- */
+/* DOM refs */
 const questionBar = document.getElementById('questionBar');
 const posedZone = document.getElementById('posedZone');
 const handZone = document.getElementById('handZone');
 const playersBar = document.getElementById('playersBar');
-
 const chatTab = document.getElementById('chatTab');
 const paramTab = document.getElementById('paramTab');
 const chatPanel = document.getElementById('chatPanel');
@@ -253,126 +354,154 @@ const paramPanel = document.getElementById('paramPanel');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
-
 const btnChangeQuestion = document.getElementById('btnChangeQuestion');
 const btnChangeHand = document.getElementById('btnChangeHand');
 const btnQuit = document.getElementById('btnQuit');
 const btnCloseParam = document.getElementById('btnCloseParam');
+const toast = document.getElementById('toast');
 
-/* --- socket --- */
+/* Socket */
 const socket = io();
 
-/* keep track of my pseudo so we don't prompt repeatedly */
 let myPseudo = null;
+let hasVoted = false;
+
+function showToast(msg, duration = 2000){
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', duration);
+}
+
 function askPseudo(){
   if(myPseudo) return;
   myPseudo = prompt("Choisis un pseudo :");
-  if(!myPseudo) myPseudo = 'Player'+Math.floor(Math.random()*1000);
+  if(!myPseudo) myPseudo = 'Joueur' + Math.floor(Math.random()*1000);
   socket.emit('rejoindreSalon', myPseudo);
 }
-setTimeout(askPseudo,200);
+setTimeout(askPseudo, 200);
 
-/* --- UI toggle handlers --- */
-chatTab.addEventListener('click',()=> {
+/* UI toggles */
+chatTab.addEventListener('click', () => {
   chatPanel.style.display = chatPanel.style.display === 'flex' ? 'none' : 'flex';
   paramPanel.style.display = 'none';
 });
-paramTab.addEventListener('click',()=> {
+
+paramTab.addEventListener('click', () => {
   paramPanel.style.display = paramPanel.style.display === 'flex' ? 'none' : 'flex';
   chatPanel.style.display = 'none';
 });
 
-/* send chat */
+/* Chat */
 function sendChat(){
   const v = chatInput.value.trim();
   if(!v) return;
   socket.emit('chatMessage', v);
-  chatInput.value='';
+  chatInput.value = '';
 }
 sendChatBtn.addEventListener('click', sendChat);
-chatInput.addEventListener('keydown', e=> { if(e.key==='Enter') sendChat(); });
+chatInput.addEventListener('keydown', e => { 
+  if(e.key === 'Enter') sendChat(); 
+});
 
-/* --- helpers to create card nodes --- */
-function makeCard(text, idx, clickHandler){
+/* Card creation */
+function makeCard(text, idx, clickHandler, author = null){
   const el = document.createElement('div');
   el.className = 'card';
   el.dataset.index = idx;
-  // text container (Option B: padding + top)
+  
   const txt = document.createElement('div');
   txt.className = 'card-text';
   txt.textContent = text;
   el.appendChild(txt);
-  if(clickHandler){
-    el.addEventListener('click', ()=> clickHandler(Number(el.dataset.index)));
+  
+  if(author){
+    const auth = document.createElement('div');
+    auth.className = 'card-author';
+    auth.textContent = author;
+    el.appendChild(auth);
   }
+  
+  if(clickHandler){
+    el.addEventListener('click', () => clickHandler(Number(el.dataset.index)));
+  }
+  
   return el;
 }
 
-/* --- rendering handlers using deterministic indexes --- */
+/* Socket events */
 socket.on('question', q => {
   questionBar.textContent = q || '...';
 });
 
-/* render my hand: each card clickable to poser by index */
 socket.on('main', hand => {
   handZone.innerHTML = '';
-  hand.forEach((txt,i)=>{
-    const card = makeCard(txt, i, (index)=> socket.emit('poserCarteIndex', index));
+  hasVoted = false;
+  hand.forEach((txt, i) => {
+    const card = makeCard(txt, i, (index) => {
+      socket.emit('poserCarteIndex', index);
+      showToast('Carte posée !');
+    });
     card.classList.add('hand-card');
     handZone.appendChild(card);
   });
-  // ensure hand not hidden by players bar: scroll to start
   handZone.scrollLeft = 0;
 });
 
-/* render cards posed (non-vote) */
 socket.on('cartesPosees', list => {
   posedZone.innerHTML = '';
-  list.forEach((cObj,i)=>{
+  list.forEach((cObj, i) => {
     const txt = (typeof cObj === 'string') ? cObj : (cObj.carte || '');
-    const card = makeCard(txt, i);
+    const author = (typeof cObj === 'object') ? cObj.pseudo : null;
+    const card = makeCard(txt, i, null, author);
     posedZone.appendChild(card);
   });
   posedZone.scrollLeft = 0;
 });
 
-/* phase vote: replace posed zone with clickable vote cards */
 socket.on('phaseVote', cards => {
   posedZone.innerHTML = '';
-  cards.forEach((txt,i)=>{
+  hasVoted = false;
+  showToast('Phase de vote ! Choisis ta carte préférée.', 3000);
+  
+  cards.forEach((txt, i) => {
     const card = makeCard(txt, i, (index) => {
+      if(hasVoted) return;
       socket.emit('voter', index);
-      // local feedback
-      card.style.boxShadow = '0 0 18px rgba(13,255,138,0.35)';
+      card.classList.add('voted');
+      hasVoted = true;
+      showToast('Vote enregistré !');
     });
     posedZone.appendChild(card);
   });
   posedZone.scrollLeft = 0;
 });
 
-/* nouveau tour: server sends nouveauTour with salon and gagnants optionally */
-socket.on('nouveauTour', data => {
-  // Clear posed cards, server will send new main events
+socket.on('resultatVote', data => {
+  const { gagnants, cartesPosees } = data;
+  showToast('🏆 Résultat du vote !', 3000);
+  
   posedZone.innerHTML = '';
-  // If server provided updated salon mains, the 'main' event will arrive; otherwise request
-  if(data && data.salon && data.salon.joueurs && socket.id){
-    const me = data.salon.joueurs[socket.id];
-    if(me && me.main) {
-      // some servers may send arrays; handle carefully
-      socket.emit('rejoindreSalon', myPseudo); // trigger to refresh main (server logic)
-    }
-  }
+  cartesPosees.forEach((c, i) => {
+    const isWinner = gagnants.some(g => g.carte === c.carte);
+    const card = makeCard(c.carte, i, null, `${c.pseudo} (${c.votes} votes)`);
+    if(isWinner) card.classList.add('winner');
+    posedZone.appendChild(card);
+  });
 });
 
-/* chat messages */
+socket.on('nouveauTour', data => {
+  posedZone.innerHTML = '';
+  hasVoted = false;
+});
+
 socket.on('chatMessage', msg => {
   const d = document.createElement('div');
   d.textContent = msg;
+  d.style.marginBottom = '6px';
   chatMessages.appendChild(d);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-/* players list updates (etatSalon) */
 socket.on('etatSalon', salon => {
   playersBar.innerHTML = '';
   Object.values(salon.joueurs || {}).forEach(j => {
@@ -383,18 +512,30 @@ socket.on('etatSalon', salon => {
   });
 });
 
-/* --- param buttons actions --- */
-btnChangeQuestion.addEventListener('click', ()=> { socket.emit('changerQuestion'); paramPanel.style.display='none'; });
-btnChangeHand.addEventListener('click', ()=> { socket.emit('changerMain'); paramPanel.style.display='none'; });
-btnQuit.addEventListener('click', ()=> { socket.emit('deconnexion'); window.location.href='index.html'; });
-btnCloseParam.addEventListener('click', ()=> paramPanel.style.display='none');
+/* Param buttons */
+btnChangeQuestion.addEventListener('click', () => { 
+  socket.emit('changerQuestion'); 
+  paramPanel.style.display = 'none'; 
+  showToast('Vote pour changer la question !');
+});
 
-/* safeguard: if image missing, show simple fallback card text (optional) */
+btnChangeHand.addEventListener('click', () => { 
+  socket.emit('changerMain'); 
+  paramPanel.style.display = 'none'; 
+  showToast('Main changée !');
+});
+
+btnQuit.addEventListener('click', () => { 
+  socket.emit('deconnexion'); 
+  window.location.href = 'index.html'; 
+});
+
+btnCloseParam.addEventListener('click', () => paramPanel.style.display = 'none');
+
+/* Image fallback */
 function checkCardImage(){
   const img = new Image();
-  img.onload = ()=>{/* ok */};
-  img.onerror = ()=>{
-    // replace CSS backgrounds with simple pale card color
+  img.onerror = () => {
     const style = document.createElement('style');
     style.innerHTML = `.card{ background-image:none; background-color:#e6f9ee; border:2px solid rgba(13,255,138,0.18); } .card .card-text{ background:transparent; color:#04120a; }`;
     document.head.appendChild(style);
@@ -403,13 +544,11 @@ function checkCardImage(){
 }
 checkCardImage();
 
-/* ensure we re-request pseudo if reload */
-window.addEventListener('beforeunload', ()=> {
-  try{ socket.emit('deconnexion'); }catch(e){}
+window.addEventListener('beforeunload', () => {
+  try { socket.emit('deconnexion'); } catch(e) {}
 });
 
-/* small: make sure taps are crisp */
-document.addEventListener('touchstart', ()=>{}, {passive:true});
+document.addEventListener('touchstart', () => {}, {passive: true});
 </script>
 </body>
 </html>
