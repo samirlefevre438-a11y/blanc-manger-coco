@@ -227,12 +227,6 @@ io.on("connection", socket=>{
     if(!j || j.vote !== null) return;
     if(index < 0 || index >= salon.cartesPosees.length) return;
 
-    // Empêcher de voter pour sa propre carte
-    if(salon.cartesPosees[index].socketId === socket.id){
-      socket.emit("chatMessage", "⚠️ Tu ne peux pas voter pour ta propre carte !");
-      return;
-    }
-
     salon.cartesPosees[index].votes += 1;
     j.vote = index;
 
