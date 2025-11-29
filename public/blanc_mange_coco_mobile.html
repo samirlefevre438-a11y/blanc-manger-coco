@@ -501,6 +501,7 @@ socket.on('phaseVote', cards => {
 
 socket.on('resultatVote', data => {
   const { gagnants, cartesPosees } = data;
+  console.log('🏆 Résultat reçu:', gagnants);
   showToast('🏆 Résultat du vote !', 3000);
   
   posedZone.innerHTML = '';
@@ -510,10 +511,12 @@ socket.on('resultatVote', data => {
     if(isWinner) card.classList.add('winner');
     posedZone.appendChild(card);
   });
+  
+  console.log('⏱️ Nouveau tour dans 3 secondes...');
 });
 
 socket.on('nouveauTour', data => {
-  console.log('🔄 Nouveau tour !');
+  console.log('🔄 Event nouveauTour reçu');
   posedZone.innerHTML = '';
   hasVoted = false;
   showToast('🎴 Nouvelle manche !', 2000);

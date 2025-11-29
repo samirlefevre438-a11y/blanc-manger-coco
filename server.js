@@ -195,9 +195,13 @@ io.on("connection", socket=>{
 
     console.log(`🃏 ${j.pseudo} a posé une carte (reste ${j.main.length})`);
 
-    // Vérifier si tous ont joué
-    const joueursActifs = Object.values(salon.joueurs);
-    if(joueursActifs.every(j => !j.peutJouer)){
+    // Vérifier si tous ont joué (sauf ceux qui n'ont pas de cartes)
+    const joueursActifs = Object.values(salon.joueurs).filter(joueur => joueur.main.length > 0 || !joueur.peutJouer);
+    const tousOntJoue = joueursActifs.every(joueur => !joueur.peutJouer);
+    
+    console.log(`🎴 Cartes posées: ${salon.cartesPosees.length}/${joueursActifs.length}`);
+    
+    if(tousOntJoue && salon.cartesPosees.length >= 2){
       salon.phase = "vote";
       // Mélanger les cartes pour l'anonymat
       salon.cartesPosees.sort(() => Math.random() - 0.5);
@@ -234,11 +238,17 @@ io.on("connection", socket=>{
 
     console.log(`✅ ${j.pseudo} a voté pour la carte ${index}`);
 
-    // Vérifier si tout le monde a voté
-    const joueursActifs = Object.values(salon.joueurs);
-    const tousOntVote = joueursActifs.every(joueur => joueur.vote !== null);
+    // Vérifier si tout le monde a voté (uniquement ceux qui ont posé une carte)
+    const joueursQuiOntJoue = Object.values(salon.joueurs).filter(joueur => 
+      salon.cartesPosees.some(c => c.socketId === joueur.vote || c.socketId === Object.keys(salon.joueurs).find(id => salon.joueurs[id] === joueur))
+    );
     
-    console.log(`📊 Votes: ${joueursActifs.filter(joueur => joueur.vote !== null).length}/${joueursActifs.length}`);
+    // Plus simple: vérifier que tous les joueurs qui ont une main ont voté
+    const joueursAvecMain = Object.values(salon.joueurs);
+    const nbVotes = joueursAvecMain.filter(joueur => joueur.vote !== null).length;
+    const tousOntVote = nbVotes === joueursAvecMain.length;
+    
+    console.log(`📊 Votes: ${nbVotes}/${joueursAvecMain.length}`);
     
     if(tousOntVote){
       salon.phase = "resultat";
@@ -271,11 +281,13 @@ io.on("connection", socket=>{
       io.emit("chatMessage", `🏆 ${nomsGagnants} ${gagnants.length > 1 ? 'ont gagné' : 'a gagné'} ce tour !`);
 
       console.log("🏆 Gagnants:", nomsGagnants);
+      console.log("⏱️  Nouveau tour dans 3 secondes...");
 
       // Nouveau tour après 3 secondes
       setTimeout(() => {
         nouveauTour();
         io.emit("nouveauTour", { salon });
+        console.log("✅ Nouveau tour lancé !");
       }, 3000);
     }
   });
