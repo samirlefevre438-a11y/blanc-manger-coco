@@ -44,27 +44,25 @@ const salon = {
 };
 
 // --- Fonctions utilitaires ---
-function tirerMainsUnique(nbParJoueur){
+function piocherCartes(nbCartes, cartesAExclure = []){
   let pile = [...cartes];
-  // Mélange complet de la pile
+  // Exclure les cartes déjà utilisées
+  pile = pile.filter(c => !cartesAExclure.includes(c));
   pile.sort(() => Math.random() - 0.5);
   
-  const mains = {};
-  const ids = Object.keys(salon.joueurs);
-  
-  console.log(`🎴 Distribution de ${nbParJoueur} cartes à ${ids.length} joueurs`);
-  console.log(`📦 Cartes disponibles: ${pile.length}`);
-  
-  for(const id of ids){
-    mains[id] = [];
-    for(let i = 0; i < nbParJoueur && pile.length > 0; i++){
-      // Prendre depuis le début de la pile déjà mélangée
-      mains[id].push(pile.shift());
-    }
-    console.log(`   ✓ ${salon.joueurs[id]?.pseudo}: ${mains[id].length} cartes`);
+  const main = [];
+  for(let i = 0; i < nbCartes && pile.length > 0; i++){
+    main.push(pile.shift());
   }
-  
-  return mains;
+  return main;
+}
+
+function getCartesEnJeu(){
+  const cartesEnJeu = [];
+  Object.values(salon.joueurs).forEach(j => {
+    cartesEnJeu.push(...j.main);
+  });
+  return cartesEnJeu;
 }
 
 function nouvelleQuestion(){ 
@@ -73,16 +71,16 @@ function nouvelleQuestion(){
 
 // --- Démarrer une nouvelle partie ---
 function demarrerPartie(){
-  if(Object.keys(salon.joueurs).length < 2) return; // Minimum 2 joueurs
+  if(Object.keys(salon.joueurs).length < 2) return;
   
   salon.partieEnCours = true;
   salon.cartesPosees = [];
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
   
-  const mains = tirerMainsUnique(7);
+  // Donner 7 cartes à chaque joueur
   Object.entries(salon.joueurs).forEach(([id,j])=>{
-    j.main = mains[id] || [];
+    j.main = piocherCartes(7, []);
     j.peutJouer = true;
     j.vote = null;
   });
@@ -93,6 +91,8 @@ function demarrerPartie(){
   Object.entries(salon.joueurs).forEach(([id,j])=> {
     io.to(id).emit("main", j.main);
   });
+  
+  console.log("🎮 Partie démarrée avec", Object.keys(salon.joueurs).length, "joueurs");
 }
 
 // --- Nouveau tour (après vote) ---
@@ -101,26 +101,28 @@ function nouveauTour(){
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
   
-  // Redonne 7 nouvelles cartes à chaque joueur
-  const mains = tirerMainsUnique(7);
+  const cartesEnJeu = getCartesEnJeu();
+  
+  // Donner UNE nouvelle carte à chaque joueur qui a joué
   Object.entries(salon.joueurs).forEach(([id,j])=>{
-    j.main = mains[id] || [];
+    const nouvellesCarte = piocherCartes(1, cartesEnJeu);
+    j.main.push(...nouvellesCarte);
     j.peutJouer = true;
     j.vote = null;
+    console.log(`   ✓ ${j.pseudo}: reçoit 1 carte (total: ${j.main.length})`);
   });
   
   nouvelleQuestion();
   
-  // Envoyer l'état mis à jour
   io.emit("etatSalon", salon);
   io.emit("question", salon.questionActuelle);
   
-  // Envoyer les nouvelles mains à chaque joueur
+  // Envoyer les mains mises à jour
   Object.entries(salon.joueurs).forEach(([id,j])=> {
     io.to(id).emit("main", j.main);
   });
   
-  console.log("🔄 Nouveau tour démarré - cartes redistribuées");
+  console.log("🔄 Nouveau tour - 1 carte ajoutée à chaque joueur");
 }
 
 // --- Connexion socket ---
@@ -130,30 +132,44 @@ io.on("connection", socket=>{
   socket.on("rejoindreSalon", pseudo=>{
     if(!pseudo) return;
     
-    const nouvelleConnexion = !salon.joueurs[socket.id];
+    const estNouveauJoueur = !salon.joueurs[socket.id];
     
-    salon.joueurs[socket.id] = { 
-      pseudo, 
-      main: [], 
-      peutJouer: true, 
-      points: salon.joueurs[socket.id]?.points || 0,
-      vote: null 
-    };
+    // Créer ou mettre à jour le joueur
+    if(estNouveauJoueur){
+      salon.joueurs[socket.id] = { 
+        pseudo, 
+        main: [], 
+        peutJouer: true, 
+        points: 0,
+        vote: null 
+      };
+      
+      io.emit("chatMessage", `🟢 ${pseudo} a rejoint la partie`);
+      
+      // Si une partie est en cours, donner 7 cartes au nouveau joueur
+      if(salon.partieEnCours){
+        const cartesEnJeu = getCartesEnJeu();
+        salon.joueurs[socket.id].main = piocherCartes(7, cartesEnJeu);
+        socket.emit("main", salon.joueurs[socket.id].main);
+        socket.emit("question", salon.questionActuelle);
+        
+        if(salon.phase === "vote"){
+          socket.emit("phaseVote", salon.cartesPosees.map(c=>c.carte));
+        } else {
+          socket.emit("cartesPosees", salon.cartesPosees.map(c=>({
+            carte:c.carte, 
+            pseudo:salon.joueurs[c.socketId]?.pseudo
+          })));
+        }
+        console.log(`   ✓ ${pseudo} rejoint en cours de partie: 7 cartes distribuées`);
+      }
+    }
     
     io.emit("etatSalon", salon);
-    io.emit("chatMessage", `🟢 ${pseudo} a rejoint la partie`);
     
     // Démarrer automatiquement si 2+ joueurs et pas de partie en cours
     if(!salon.partieEnCours && Object.keys(salon.joueurs).length >= 2){
       demarrerPartie();
-    } else if(salon.partieEnCours) {
-      // Envoyer l'état actuel au nouveau joueur
-      socket.emit("question", salon.questionActuelle);
-      if(salon.phase === "vote"){
-        socket.emit("phaseVote", salon.cartesPosees.map(c=>c.carte));
-      } else {
-        socket.emit("cartesPosees", salon.cartesPosees.map(c=>({carte:c.carte, pseudo:salon.joueurs[c.socketId]?.pseudo})));
-      }
     }
   });
 
@@ -177,13 +193,16 @@ io.on("connection", socket=>{
       pseudo: c.pseudo
     })));
 
+    console.log(`🃏 ${j.pseudo} a posé une carte (reste ${j.main.length})`);
+
     // Vérifier si tous ont joué
-    const joueursActifs = Object.values(salon.joueurs).filter(j => j.main.length > 0);
+    const joueursActifs = Object.values(salon.joueurs);
     if(joueursActifs.every(j => !j.peutJouer)){
       salon.phase = "vote";
       // Mélanger les cartes pour l'anonymat
       salon.cartesPosees.sort(() => Math.random() - 0.5);
       io.emit("phaseVote", salon.cartesPosees.map(c => c.carte));
+      console.log("🗳️  Phase de vote commencée");
     }
   });
 
@@ -191,20 +210,8 @@ io.on("connection", socket=>{
     const j = salon.joueurs[socket.id];
     if(!j || salon.phase!=="jeu" || !j.peutJouer) return;
 
-    let pile = [...cartes];
-    // Retirer les cartes déjà en main chez les autres joueurs
-    Object.entries(salon.joueurs).forEach(([id,other])=>{ 
-      if(id !== socket.id) {
-        pile = pile.filter(c => !other.main.includes(c)); 
-      }
-    });
-
-    const nouvelleMain = [];
-    for(let i=0; i<7 && pile.length>0; i++){
-      const idx = Math.floor(Math.random()*pile.length);
-      nouvelleMain.push(pile[idx]);
-      pile.splice(idx,1);
-    }
+    const cartesEnJeu = getCartesEnJeu();
+    const nouvelleMain = piocherCartes(7, cartesEnJeu);
     j.main = nouvelleMain;
     socket.emit("main", j.main);
     io.emit("chatMessage", `🔄 ${j.pseudo} a changé sa main`);
@@ -252,7 +259,7 @@ io.on("connection", socket=>{
         votes: c.votes
       }));
 
-      // Envoyer résultats avant de reset
+      // Envoyer résultats avant le nouveau tour
       io.emit("resultatVote", {
         gagnants: gagnantsData,
         cartesPosees: salon.cartesPosees
@@ -292,7 +299,6 @@ io.on("connection", socket=>{
     if(pseudo) io.emit("chatMessage", `🔴 ${pseudo} a quitté la partie`);
     io.emit("etatSalon", salon);
     
-    // Si moins de 2 joueurs, mettre en pause
     if(Object.keys(salon.joueurs).length < 2){
       salon.partieEnCours = false;
     }

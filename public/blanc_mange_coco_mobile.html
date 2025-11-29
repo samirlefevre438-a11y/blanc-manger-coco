@@ -304,7 +304,9 @@ body {
 
   <div id="content">
     <div id="posedZone" aria-live="polite"></div>
-    <div id="handZone"></div>
+    <div id="handZone">
+      <div id="handCounter">0 cartes</div>
+    </div>
     <div class="spacer-bottom"></div>
   </div>
 
@@ -359,6 +361,7 @@ const btnChangeHand = document.getElementById('btnChangeHand');
 const btnQuit = document.getElementById('btnQuit');
 const btnCloseParam = document.getElementById('btnCloseParam');
 const toast = document.getElementById('toast');
+const handCounter = document.getElementById('handCounter');
 
 /* Socket */
 const socket = io();
@@ -434,11 +437,13 @@ socket.on('question', q => {
 });
 
 socket.on('main', hand => {
-  console.log('📥 Nouvelles cartes reçues:', hand.length);
-  handZone.innerHTML = '';
+  console.log('📥 Cartes reçues:', hand.length);
+  handZone.innerHTML = '<div id="handCounter">0 cartes</div>';
+  const counter = document.getElementById('handCounter');
   hasVoted = false;
   
   if(hand.length === 0){
+    counter.textContent = 'Pas de cartes';
     const msg = document.createElement('div');
     msg.style.color = 'var(--vert)';
     msg.style.padding = '20px';
@@ -447,6 +452,8 @@ socket.on('main', hand => {
     handZone.appendChild(msg);
     return;
   }
+  
+  counter.textContent = `${hand.length} carte${hand.length > 1 ? 's' : ''}`;
   
   hand.forEach((txt, i) => {
     const card = makeCard(txt, i, (index) => {
@@ -505,7 +512,7 @@ socket.on('nouveauTour', data => {
   console.log('🔄 Nouveau tour !');
   posedZone.innerHTML = '';
   hasVoted = false;
-  showToast('🎴 Nouveau tour - nouvelles cartes !', 2000);
+  showToast('🎴 Nouvelle manche !', 2000);
 });
 
 socket.on('chatMessage', msg => {
