@@ -190,9 +190,11 @@ io.on("connection", socket=>{
     });
 
     socket.emit("main", j.main);
-    io.emit("nombreCartesAttente", salon.cartesPosees.length);
-
+    
     console.log(`🃏 ${j.pseudo} a posé une carte (reste ${j.main.length})`);
+    
+    // Envoyer mise à jour du nombre de cartes posées
+    io.emit("nombreCartesAttente", salon.cartesPosees.length);
 
     // Vérifier si tous ont joué (sauf ceux qui n'ont pas de cartes)
     const joueursActifs = Object.values(salon.joueurs).filter(joueur => joueur.main.length > 0 || !joueur.peutJouer);
