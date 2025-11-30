@@ -37,10 +37,11 @@ app.post("/ajouterCarte", (req,res)=>{
 const salon = {
   joueurs: {},
   cartesPosees: [],
-  phase: "jeu", // jeu | vote | resultat
+  phase: "jeu", // jeu | presentation | vote | resultat
   questionActuelle: null,
   changementCarteVotes: [],
-  partieEnCours: false
+  partieEnCours: false,
+  carteActuelle: 0 // Index de la carte en cours de présentation
 };
 
 // --- Fonctions utilitaires ---
@@ -100,6 +101,7 @@ function nouveauTour(){
   salon.cartesPosees = [];
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
+  salon.carteActuelle = 0;
   
   const cartesEnJeu = getCartesEnJeu();
   
@@ -188,10 +190,7 @@ io.on("connection", socket=>{
     });
 
     socket.emit("main", j.main);
-    io.emit("cartesPosees", salon.cartesPosees.map(c=>({
-      carte: c.carte,
-      pseudo: c.pseudo
-    })));
+    io.emit("nombreCartesAttente", salon.cartesPosees.length);
 
     console.log(`🃏 ${j.pseudo} a posé une carte (reste ${j.main.length})`);
 
@@ -202,11 +201,18 @@ io.on("connection", socket=>{
     console.log(`🎴 Cartes posées: ${salon.cartesPosees.length}/${joueursActifs.length}`);
     
     if(tousOntJoue && salon.cartesPosees.length >= 2){
-      salon.phase = "vote";
+      salon.phase = "presentation";
+      salon.carteActuelle = 0;
       // Mélanger les cartes pour l'anonymat
       salon.cartesPosees.sort(() => Math.random() - 0.5);
-      io.emit("phaseVote", salon.cartesPosees.map(c => c.carte));
-      console.log("🗳️  Phase de vote commencée");
+      // Envoyer la première carte
+      io.emit("presentationCarte", {
+        carte: salon.cartesPosees[0].carte,
+        index: 0,
+        total: salon.cartesPosees.length,
+        question: salon.questionActuelle
+      });
+      console.log("📺 Phase de présentation commencée");
     }
   });
 
@@ -219,6 +225,30 @@ io.on("connection", socket=>{
     j.main = nouvelleMain;
     socket.emit("main", j.main);
     io.emit("chatMessage", `🔄 ${j.pseudo} a changé sa main`);
+  });
+
+  socket.on("carteSuivante", ()=>{
+    if(salon.phase !== "presentation") return;
+    
+    salon.carteActuelle++;
+    
+    if(salon.carteActuelle >= salon.cartesPosees.length){
+      // Toutes les cartes ont été présentées, passer au vote
+      salon.phase = "vote";
+      io.emit("phaseVote", salon.cartesPosees.map((c, i) => ({
+        carte: c.carte,
+        index: i
+      })));
+      console.log("🗳️  Phase de vote commencée");
+    } else {
+      // Envoyer la carte suivante
+      io.emit("presentationCarte", {
+        carte: salon.cartesPosees[salon.carteActuelle].carte,
+        index: salon.carteActuelle,
+        total: salon.cartesPosees.length,
+        question: salon.questionActuelle
+      });
+    }
   });
 
   socket.on("voter", index=>{
