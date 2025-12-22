@@ -65,28 +65,29 @@ body {
 }
 
 #posedZone {
-  box-sizing: border-box;
-  padding: 12px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  flex: 1 0 auto;
+  box-sizing:border-box;
+  padding:12px;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  justify-content: center;
+  gap:20px;
+  overflow-y:auto;
+  flex:1 0 auto;
 }
 
 #handZone {
-  box-sizing: border-box;
-  padding: 10px;
-  border-top: 3px solid rgba(13,255,138,0.12);
-  background: rgba(0,0,0,0.25);
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  flex: 0 0 auto;
+  box-sizing:border-box;
+  padding:10px;
+  border-top:3px solid rgba(13,255,138,0.12);
+  background:rgba(0,0,0,0.25);
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  flex:0 0 auto;
   height: calc(var(--cardH) * 0.9 + 20px);
-  align-items: flex-start;
+  align-items:flex-start;
+  position: relative;
 }
 
 #playersBar {
@@ -176,6 +177,21 @@ body {
 
 .card:active { 
   transform: translateY(-2px) scale(0.995); 
+}
+
+#handCounter {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--vert);
+  color: #04120a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .tab {
@@ -284,7 +300,6 @@ body {
   display: none !important; 
 }
 
-/* Toast notification */
 #toast {
   position: fixed;
   top: 20px;
@@ -300,6 +315,65 @@ body {
   display: none;
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
+
+.vote-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.message-attente {
+  color: var(--vert);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.presentation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 90%;
+}
+
+.presentation-counter {
+  color: var(--vert);
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+}
+
+.presentation-question {
+  background: var(--bg2);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  text-align: center;
+  border: 2px solid rgba(13,255,138,0.3);
+  line-height: 1.6;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-suivant {
+  background: var(--vert);
+  color: #04120a;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-family: "TFMadloud", Arial, sans-serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(13,255,138,0.3);
+}
+
+.btn-suivant:active {
+  transform: scale(0.95);
+}
 </style>
 </head>
 <body>
@@ -307,14 +381,14 @@ body {
   <div id="questionBar">Chargement…</div>
 
   <div id="content">
-    <div id="posedZone" aria-live="polite"></div>
+    <div id="posedZone"></div>
     <div id="handZone">
       <div id="handCounter">0 cartes</div>
     </div>
     <div class="spacer-bottom"></div>
   </div>
 
-  <div id="playersBar" aria-hidden="false"></div>
+  <div id="playersBar"></div>
 </div>
 
 <button id="chatTab" class="tab">💬</button>
@@ -339,6 +413,8 @@ body {
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+console.log('🚀 Script chargé');
+
 /* Viewport fix */
 function updateVh(){
   let vh = window.innerHeight * 0.01;
@@ -365,31 +441,24 @@ const btnChangeHand = document.getElementById('btnChangeHand');
 const btnQuit = document.getElementById('btnQuit');
 const btnCloseParam = document.getElementById('btnCloseParam');
 const toast = document.getElementById('toast');
-const handCounter = document.getElementById('handCounter');
+
+console.log('✅ DOM refs chargés');
 
 /* Socket */
 const socket = io();
-
-// Gestionnaire d'erreurs global
-window.addEventListener('error', (e) => {
-  console.error('❌ ERREUR JAVASCRIPT:', e.message, e.filename, e.lineno);
-});
-
-socket.on('connect', () => {
-  console.log('🔌 Connecté au serveur, ID:', socket.id);
-});
-
-socket.on('disconnect', () => {
-  console.log('🔌 Déconnecté du serveur');
-});
-
-// INTERCEPTION DE TOUS LES EVENTS (doit être AVANT les autres listeners)
-socket.onAny((eventName, ...args) => {
-  console.log(`📨 EVENT REÇU: "${eventName}"`, args);
-});
+console.log('✅ Socket créé');
 
 let myPseudo = null;
 let hasVoted = false;
+
+// INTERCEPTION DE TOUS LES EVENTS
+socket.onAny((eventName, ...args) => {
+  console.log(`📨 EVENT: "${eventName}"`, args);
+});
+
+socket.on('connect', () => {
+  console.log('🔌 Connecté, ID:', socket.id);
+});
 
 function showToast(msg, duration = 2000){
   toast.textContent = msg;
@@ -455,26 +524,17 @@ function makeCard(text, idx, clickHandler, author = null){
 
 /* Socket events */
 socket.on('question', q => {
-  console.log('✅ Handler question appelé:', q);
   questionBar.textContent = q || '...';
 });
 
-console.log('🎮 Listeners socket enregistrés');
-
 socket.on('main', hand => {
-  console.log('📥 Cartes reçues:', hand.length);
+  console.log('📥 Main reçue:', hand.length);
   handZone.innerHTML = '<div id="handCounter">0 cartes</div>';
   const counter = document.getElementById('handCounter');
   hasVoted = false;
   
   if(hand.length === 0){
     counter.textContent = 'Pas de cartes';
-    const msg = document.createElement('div');
-    msg.style.color = 'var(--vert)';
-    msg.style.padding = '20px';
-    msg.style.textAlign = 'center';
-    msg.textContent = 'En attente de cartes...';
-    handZone.appendChild(msg);
     return;
   }
   
@@ -485,63 +545,78 @@ socket.on('main', hand => {
       socket.emit('poserCarteIndex', index);
       showToast('Carte posée !');
     });
-    card.classList.add('hand-card');
     handZone.appendChild(card);
   });
   handZone.scrollLeft = 0;
 });
 
-socket.on('cartesPosees', list => {
-  posedZone.innerHTML = '';
-  list.forEach((cObj, i) => {
-    const txt = (typeof cObj === 'string') ? cObj : (cObj.carte || '');
-    const author = (typeof cObj === 'object') ? cObj.pseudo : null;
-    const card = makeCard(txt, i, null, author);
-    posedZone.appendChild(card);
-  });
-  posedZone.scrollLeft = 0;
+socket.on('nombreCartesAttente', nb => {
+  console.log('⏳ Attente:', nb);
+  posedZone.innerHTML = `<div class="message-attente">En attente des autres joueurs... (${nb} carte${nb > 1 ? 's' : ''} posée${nb > 1 ? 's' : ''})</div>`;
 });
 
-socket.on('phaseVote', cards => {
-  posedZone.innerHTML = '';
-  hasVoted = false;
-  showToast('Phase de vote ! Choisis ta carte préférée.', 3000);
+socket.on('presentationCarte', data => {
+  console.log('📺 PRÉSENTATION:', data);
   
-  cards.forEach((txt, i) => {
-    const card = makeCard(txt, i, (index) => {
+  const questionAvecCarte = data.question.replace('__________', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
+  
+  posedZone.innerHTML = `
+    <div class="presentation-container">
+      <div class="presentation-counter">Carte ${data.index + 1}/${data.total}</div>
+      <div class="presentation-question">${questionAvecCarte}</div>
+      <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${data.index === data.total - 1 ? 'Voter →' : 'Suivant →'}</button>
+    </div>
+  `;
+  
+  if(data.index === 0){
+    showToast('📺 Affichage des cartes', 2000);
+  }
+});
+
+socket.on('phaseVote', cartes => {
+  console.log('🗳️ Vote:', cartes);
+  
+  posedZone.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'vote-cards-container';
+  
+  hasVoted = false;
+  showToast('Vote pour ta carte préférée !', 3000);
+  
+  cartes.forEach((txt, i) => {
+    const card = makeCard(String(txt), i, (index) => {
       if(hasVoted) return;
       socket.emit('voter', index);
       card.classList.add('voted');
       hasVoted = true;
       showToast('Vote enregistré !');
     });
-    posedZone.appendChild(card);
+    container.appendChild(card);
   });
-  posedZone.scrollLeft = 0;
+  
+  posedZone.appendChild(container);
 });
 
 socket.on('resultatVote', data => {
-  const { gagnants, cartesPosees } = data;
-  console.log('🏆 Résultat reçu:', gagnants);
+  console.log('🏆 Résultat:', data);
   showToast('🏆 Résultat du vote !', 3000);
   
   posedZone.innerHTML = '';
   const container = document.createElement('div');
   container.className = 'vote-cards-container';
   
-  cartesPosees.forEach((c, i) => {
-    const isWinner = gagnants.some(g => g.carte === c.carte);
+  data.cartesPosees.forEach((c, i) => {
+    const isWinner = data.gagnants.some(g => g.carte === c.carte);
     const card = makeCard(c.carte, i, null, `${c.pseudo} (${c.votes} vote${c.votes > 1 ? 's' : ''})`);
     if(isWinner) card.classList.add('winner');
     container.appendChild(card);
   });
   
   posedZone.appendChild(container);
-  console.log('⏱️ Nouveau tour dans 3 secondes...');
 });
 
-socket.on('nouveauTour', data => {
-  console.log('🔄 Event nouveauTour reçu');
+socket.on('nouveauTour', () => {
+  console.log('🔄 Nouveau tour');
   posedZone.innerHTML = '';
   hasVoted = false;
   showToast('🎴 Nouvelle manche !', 2000);
@@ -585,23 +660,7 @@ btnQuit.addEventListener('click', () => {
 
 btnCloseParam.addEventListener('click', () => paramPanel.style.display = 'none');
 
-/* Image fallback */
-function checkCardImage(){
-  const img = new Image();
-  img.onerror = () => {
-    const style = document.createElement('style');
-    style.innerHTML = `.card{ background-image:none; background-color:#e6f9ee; border:2px solid rgba(13,255,138,0.18); } .card .card-text{ background:transparent; color:#04120a; }`;
-    document.head.appendChild(style);
-  };
-  img.src = 'carte.png';
-}
-checkCardImage();
-
-window.addEventListener('beforeunload', () => {
-  try { socket.emit('deconnexion'); } catch(e) {}
-});
-
-document.addEventListener('touchstart', () => {}, {passive: true});
+console.log('✅ Script complètement chargé');
 </script>
 </body>
 </html>
