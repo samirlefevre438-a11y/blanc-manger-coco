@@ -370,6 +370,19 @@ const handCounter = document.getElementById('handCounter');
 /* Socket */
 const socket = io();
 
+// Gestionnaire d'erreurs global
+window.addEventListener('error', (e) => {
+  console.error('❌ ERREUR JAVASCRIPT:', e.message, e.filename, e.lineno);
+});
+
+socket.on('connect', () => {
+  console.log('🔌 Connecté au serveur, ID:', socket.id);
+});
+
+socket.on('disconnect', () => {
+  console.log('🔌 Déconnecté du serveur');
+});
+
 let myPseudo = null;
 let hasVoted = false;
 
@@ -439,6 +452,9 @@ function makeCard(text, idx, clickHandler, author = null){
 socket.on('question', q => {
   questionBar.textContent = q || '...';
 });
+
+// TEST: Log pour vérifier que les listeners sont bien enregistrés
+console.log('🎮 Listeners socket enregistrés');
 
 socket.on('main', hand => {
   console.log('📥 Cartes reçues:', hand.length);
