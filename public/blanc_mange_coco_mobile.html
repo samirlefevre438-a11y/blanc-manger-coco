@@ -307,15 +307,7 @@ body {
   <div id="questionBar">Chargement…</div>
 
   <div id="content">
-    <div id="posedZone" aria-live="polite">
-      <div id="attenteMessage" style="display:none;">En attente des autres joueurs...</div>
-      <div id="presentationCard">
-        <div id="carteCounter"></div>
-        <div id="presentationQuestion"></div>
-        <div id="presentationCardHolder"></div>
-        <button id="btnSuivant">Suivant →</button>
-      </div>
-    </div>
+    <div id="posedZone" aria-live="polite"></div>
     <div id="handZone">
       <div id="handCounter">0 cartes</div>
     </div>
@@ -374,19 +366,12 @@ const btnQuit = document.getElementById('btnQuit');
 const btnCloseParam = document.getElementById('btnCloseParam');
 const toast = document.getElementById('toast');
 const handCounter = document.getElementById('handCounter');
-const presentationCard = document.getElementById('presentationCard');
-const presentationQuestion = document.getElementById('presentationQuestion');
-const presentationCardHolder = document.getElementById('presentationCardHolder');
-const btnSuivant = document.getElementById('btnSuivant');
-const carteCounter = document.getElementById('carteCounter');
-const attenteMessage = document.getElementById('attenteMessage');
 
 /* Socket */
 const socket = io();
 
 let myPseudo = null;
 let hasVoted = false;
-let cartesVote = []; // Stocker les cartes pour le vote
 
 function showToast(msg, duration = 2000){
   toast.textContent = msg;
@@ -411,11 +396,6 @@ chatTab.addEventListener('click', () => {
 paramTab.addEventListener('click', () => {
   paramPanel.style.display = paramPanel.style.display === 'flex' ? 'none' : 'flex';
   chatPanel.style.display = 'none';
-});
-
-/* Bouton suivant pour la présentation */
-btnSuivant.addEventListener('click', () => {
-  socket.emit('carteSuivante');
 });
 
 /* Chat */
@@ -524,16 +504,13 @@ socket.on('resultatVote', data => {
   console.log('🏆 Résultat reçu:', gagnants);
   showToast('🏆 Résultat du vote !', 3000);
   
-  presentationCard.style.display = 'none';
-  attenteMessage.style.display = 'none';
-  
   posedZone.innerHTML = '';
   const container = document.createElement('div');
   container.className = 'vote-cards-container';
   
   cartesPosees.forEach((c, i) => {
     const isWinner = gagnants.some(g => g.carte === c.carte);
-    const card = makeCard(c.carte, i, null, `${c.pseudo} (${c.votes} votes)`);
+    const card = makeCard(c.carte, i, null, `${c.pseudo} (${c.votes} vote${c.votes > 1 ? 's' : ''})`);
     if(isWinner) card.classList.add('winner');
     container.appendChild(card);
   });
@@ -545,8 +522,6 @@ socket.on('resultatVote', data => {
 socket.on('nouveauTour', data => {
   console.log('🔄 Event nouveauTour reçu');
   posedZone.innerHTML = '';
-  attenteMessage.style.display = 'none';
-  presentationCard.style.display = 'none';
   hasVoted = false;
   showToast('🎴 Nouvelle manche !', 2000);
 });

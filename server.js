@@ -237,10 +237,10 @@ io.on("connection", socket=>{
     if(salon.carteActuelle >= salon.cartesPosees.length){
       // Toutes les cartes ont été présentées, passer au vote
       salon.phase = "vote";
-      io.emit("phaseVote", salon.cartesPosees.map((c, i) => ({
-        carte: c.carte,
-        index: i
-      })));
+      // Envoyer UNIQUEMENT les textes des cartes (strings simples)
+      const cartesTexte = salon.cartesPosees.map(c => c.carte);
+      console.log("📤 Envoi cartes pour vote:", cartesTexte);
+      io.emit("phaseVote", cartesTexte);
       console.log("🗳️  Phase de vote commencée");
     } else {
       // Envoyer la carte suivante
@@ -250,6 +250,7 @@ io.on("connection", socket=>{
         total: salon.cartesPosees.length,
         question: salon.questionActuelle
       });
+      console.log(`📺 Carte ${salon.carteActuelle + 1}/${salon.cartesPosees.length} envoyée`);
     }
   });
 
