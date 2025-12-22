@@ -177,7 +177,10 @@ io.on("connection", socket=>{
 
   socket.on("poserCarteIndex", index=>{
     const j = salon.joueurs[socket.id];
-    if(!j || !j.peutJouer || salon.phase!=="jeu") return;
+    if(!j || !j.peutJouer || salon.phase!=="jeu") {
+      console.log(`❌ Impossible de poser: peutJouer=${j?.peutJouer}, phase=${salon.phase}`);
+      return;
+    }
     if(index<0 || index>=j.main.length) return;
 
     const carte = j.main.splice(index,1)[0];
@@ -197,16 +200,30 @@ io.on("connection", socket=>{
     io.emit("nombreCartesAttente", salon.cartesPosees.length);
 
     // Vérifier si tous ont joué (sauf ceux qui n'ont pas de cartes)
-    const joueursActifs = Object.values(salon.joueurs).filter(joueur => joueur.main.length > 0 || !joueur.peutJouer);
-    const tousOntJoue = joueursActifs.every(joueur => !joueur.peutJouer);
+    const tousLesJoueurs = Object.values(salon.joueurs);
+    const joueursQuiOntJoue = tousLesJoueurs.filter(joueur => !joueur.peutJouer);
     
-    console.log(`🎴 Cartes posées: ${salon.cartesPosees.length}/${joueursActifs.length}`);
+    console.log(`📊 Joueurs total: ${tousLesJoueurs.length}`);
+    console.log(`📊 Joueurs qui ont joué: ${joueursQuiOntJoue.length}`);
+    console.log(`🎴 Cartes posées: ${salon.cartesPosees.length}`);
+    
+    tousLesJoueurs.forEach(joueur => {
+      console.log(`   - ${joueur.pseudo}: peutJouer=${joueur.peutJouer}, cartes=${joueur.main.length}`);
+    });
+    
+    const tousOntJoue = tousLesJoueurs.every(joueur => !joueur.peutJouer);
+    
+    console.log(`✅ Tous ont joué? ${tousOntJoue}`);
     
     if(tousOntJoue && salon.cartesPosees.length >= 2){
       salon.phase = "presentation";
       salon.carteActuelle = 0;
       // Mélanger les cartes pour l'anonymat
       salon.cartesPosees.sort(() => Math.random() - 0.5);
+      
+      console.log("📺 ========== PASSAGE EN PHASE PRÉSENTATION ==========");
+      console.log("📺 Envoi de la première carte...");
+      
       // Envoyer la première carte
       io.emit("presentationCarte", {
         carte: salon.cartesPosees[0].carte,
@@ -214,7 +231,7 @@ io.on("connection", socket=>{
         total: salon.cartesPosees.length,
         question: salon.questionActuelle
       });
-      console.log("📺 Phase de présentation commencée");
+      console.log("📺 Phase de présentation commencée - Première carte envoyée");
     }
   });
 
