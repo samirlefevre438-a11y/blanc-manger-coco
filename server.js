@@ -155,15 +155,24 @@ io.on("connection", socket=>{
         socket.emit("main", salon.joueurs[socket.id].main);
         socket.emit("question", salon.questionActuelle);
         
-        if(salon.phase === "vote"){
-          socket.emit("phaseVote", salon.cartesPosees.map(c=>c.carte));
-        } else {
-          socket.emit("cartesPosees", salon.cartesPosees.map(c=>({
-            carte:c.carte, 
-            pseudo:salon.joueurs[c.socketId]?.pseudo
-          })));
+        // Envoyer l'état actuel selon la phase
+        if(salon.phase === "presentation"){
+          // Envoyer la carte en cours de présentation
+          socket.emit("presentationCarte", {
+            carte: salon.cartesPosees[salon.carteActuelle].carte,
+            index: salon.carteActuelle,
+            total: salon.cartesPosees.length,
+            question: salon.questionActuelle
+          });
+        } else if(salon.phase === "vote"){
+          // Envoyer les cartes pour voter
+          socket.emit("phaseVote", salon.cartesPosees.map(c => c.carte));
+        } else if(salon.phase === "jeu"){
+          // Envoyer le nombre de cartes posées
+          socket.emit("nombreCartesAttente", salon.cartesPosees.length);
         }
-        console.log(`   ✓ ${pseudo} rejoint en cours de partie: 7 cartes distribuées`);
+        
+        console.log(`   ✓ ${pseudo} rejoint en cours de partie (phase: ${salon.phase}): 7 cartes distribuées`);
       }
     }
     
