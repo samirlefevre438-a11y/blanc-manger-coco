@@ -383,6 +383,11 @@ socket.on('disconnect', () => {
   console.log('🔌 Déconnecté du serveur');
 });
 
+// INTERCEPTION DE TOUS LES EVENTS (doit être AVANT les autres listeners)
+socket.onAny((eventName, ...args) => {
+  console.log(`📨 EVENT REÇU: "${eventName}"`, args);
+});
+
 let myPseudo = null;
 let hasVoted = false;
 
@@ -450,22 +455,11 @@ function makeCard(text, idx, clickHandler, author = null){
 
 /* Socket events */
 socket.on('question', q => {
+  console.log('✅ Handler question appelé:', q);
   questionBar.textContent = q || '...';
 });
 
-// TEST: Log pour vérifier que les listeners sont bien enregistrés
 console.log('🎮 Listeners socket enregistrés');
-console.log('🎮 Test socket.io:', typeof io !== 'undefined' ? 'OK' : 'ERREUR');
-console.log('🎮 Socket créé:', socket ? 'OK' : 'ERREUR');
-
-// Afficher tous les événements socket reçus (DEBUG)
-const originalOn = socket.on.bind(socket);
-socket.on = function(event, callback) {
-  return originalOn(event, function(...args) {
-    console.log(`📨 Event reçu: ${event}`, args);
-    return callback(...args);
-  });
-};
 
 socket.on('main', hand => {
   console.log('📥 Cartes reçues:', hand.length);
