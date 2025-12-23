@@ -481,3 +481,38 @@ io.on("connection", socket=>{
 // --- Démarrage serveur ---
 nouvelleQuestion();
 server.listen(3000, ()=>console.log("🚀 Serveur sur http://localhost:3000"));
+
+
+
+
+app.get("/kukipix", async (req, res) => {
+  try {
+    const key = JSON.parse(process.env.GOOGLE_DRIVE_KEY);
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: key,
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"]
+    });
+
+    const drive = google.drive({ version: "v3", auth });
+
+    const folderId = process.env.DRIVE_FOLDER_ID;
+
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents and mimeType contains 'image/'`,
+      fields: "files(id, name, mimeType)",
+    });
+
+    res.json({
+      success: true,
+      count: response.data.files.length,
+      files: response.data.files
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
