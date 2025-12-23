@@ -565,13 +565,22 @@ socket.on('presentationCarte', data => {
   // Créer le span coloré pour la carte
   const carteColoree = `<span style="color: #0DFF8A; font-weight: bold; background: rgba(13, 255, 138, 0.1); padding: 2px 6px; border-radius: 4px;">${data.carte}</span>`;
   
-  // Remplacer tous les patterns possibles
-  questionAvecCarte = questionAvecCarte.replace(/\.\.\./g, carteColoree); // Remplace ...
-  questionAvecCarte = questionAvecCarte.replace(/__________/g, carteColoree); // Remplace __________
-  questionAvecCarte = questionAvecCarte.replace(/______/g, carteColoree); // Remplace ______
-  questionAvecCarte = questionAvecCarte.replace(/\[blank\]/gi, carteColoree); // Remplace [blank]
+  // Remplacer tous les patterns possibles (échapper les points pour la regex)
+  questionAvecCarte = questionAvecCarte.replace(/\.\.\./g, carteColoree); // ... échappé
+  questionAvecCarte = questionAvecCarte.replace(/__________/g, carteColoree); // __________
+  questionAvecCarte = questionAvecCarte.replace(/______/g, carteColoree); // ______
+  
+  // Si aucun remplacement n'a été fait, essayer avec split/join (plus robuste)
+  if(questionAvecCarte === data.question) {
+    if(data.question.includes('...')) {
+      questionAvecCarte = data.question.split('...').join(carteColoree);
+    } else if(data.question.includes('__________')) {
+      questionAvecCarte = data.question.split('__________').join(carteColoree);
+    }
+  }
   
   console.log('📺 Question après remplacement:', questionAvecCarte);
+  console.log('📺 Remplacement effectué?', questionAvecCarte !== data.question);
   
   posedZone.innerHTML = `
     <div class="presentation-container">
