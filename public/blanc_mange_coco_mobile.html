@@ -403,6 +403,7 @@ body {
 </div>
 
 <div id="paramPanel" class="panel">
+  <button id="btnToggleSpeech" class="paramBtn">🔊 Voix: ON</button>
   <button id="btnChangeQuestion" class="paramBtn">Changer la carte</button>
   <button id="btnChangeHand" class="paramBtn">Changer la main</button>
   <button id="btnQuit" class="paramBtn">Quitter</button>
@@ -436,6 +437,7 @@ const paramPanel = document.getElementById('paramPanel');
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
+const btnToggleSpeech = document.getElementById('btnToggleSpeech');
 const btnChangeQuestion = document.getElementById('btnChangeQuestion');
 const btnChangeHand = document.getElementById('btnChangeHand');
 const btnQuit = document.getElementById('btnQuit');
@@ -450,6 +452,35 @@ console.log('✅ Socket créé');
 
 let myPseudo = null;
 let hasVoted = false;
+let speechEnabled = true; // Paramètre pour activer/désactiver la voix
+
+// Fonction de synthèse vocale
+function speakText(text) {
+  if (!speechEnabled || !('speechSynthesis' in window)) return;
+  
+  // Arrêter toute lecture en cours
+  window.speechSynthesis.cancel();
+  
+  // Nettoyer le texte des balises HTML
+  const cleanText = text.replace(/<[^>]*>/g, '');
+  
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'fr-FR';
+  utterance.rate = 0.9; // Vitesse de lecture (0.1 à 10)
+  utterance.pitch = 1; // Tonalité (0 à 2)
+  utterance.volume = 1; // Volume (0 à 1)
+  
+  console.log('🔊 Lecture vocale:', cleanText);
+  
+  window.speechSynthesis.speak(utterance);
+}
+
+// Fonction pour arrêter la lecture
+function stopSpeech() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
 
 // INTERCEPTION DE TOUS LES EVENTS
 socket.onAny((eventName, ...args) => {
@@ -564,12 +595,27 @@ socket.on('presentationCarte', data => {
   const carteColoree = `<span style="color: #0DFF8A; font-weight: bold; background: rgba(13, 255, 138, 0.1); padding: 2px 6px; border-radius: 4px;">${data.carte}</span>`;
   
   // Remplacer TOUS les patterns possibles
+  let questionPourVoix = data.question;
+  questionPourVoix = questionPourVoix.replace(/…/g, data.carte);
+  questionPourVoix = questionPourVoix.replace(/\.\.\./g, data.carte);
+  questionPourVoix = questionPourVoix.replace(/__________/g, data.carte);
+  questionPourVoix = questionPourVoix.replace(/______/g, data.carte);
+  
+  // Fallback
+  if(questionPourVoix === data.question) {
+    if(data.question.includes('…')) {
+      questionPourVoix = data.question.split('…').join(data.carte);
+    } else if(data.question.includes('...')) {
+      questionPourVoix = data.question.split('...').join(data.carte);
+    }
+  }
+  
+  // Pour l'affichage HTML
   questionAvecCarte = questionAvecCarte.replace(/…/g, carteColoree);
   questionAvecCarte = questionAvecCarte.replace(/\.\.\./g, carteColoree);
   questionAvecCarte = questionAvecCarte.replace(/__________/g, carteColoree);
   questionAvecCarte = questionAvecCarte.replace(/______/g, carteColoree);
   
-  // Fallback avec split/join
   if(questionAvecCarte === data.question) {
     if(data.question.includes('…')) {
       questionAvecCarte = data.question.split('…').join(carteColoree);
@@ -588,12 +634,18 @@ socket.on('presentationCarte', data => {
       <div style="color: var(--vert); font-size: 0.85rem; margin: 10px 0; font-family: Arial, sans-serif;">
         <span id="clicsCounter">${clicsInfo}</span> joueurs prêts
       </div>
-      <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${btnText}</button>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${btnText}</button>
+        <button class="btn-suivant" onclick="speakText('${questionPourVoix.replace(/'/g, "\\'")}')">🔊</button>
+      </div>
     </div>
   `;
   
+  // Lire automatiquement la première carte
   if(data.index === 0){
     showToast('📺 Affichage des cartes', 2000);
+    // Attendre un peu avant de lire (laisser le temps au toast)
+    setTimeout(() => speakText(questionPourVoix), 500);
   }
 });
 
@@ -673,6 +725,15 @@ socket.on('etatSalon', salon => {
 });
 
 /* Param buttons */
+btnToggleSpeech.addEventListener('click', () => {
+  speechEnabled = !speechEnabled;
+  btnToggleSpeech.textContent = speechEnabled ? '🔊 Voix: ON' : '🔇 Voix: OFF';
+  if(!speechEnabled) {
+    stopSpeech();
+  }
+  showToast(speechEnabled ? 'Voix activée' : 'Voix désactivée', 1500);
+});
+
 btnChangeQuestion.addEventListener('click', () => { 
   socket.emit('changerQuestion'); 
   paramPanel.style.display = 'none'; 
