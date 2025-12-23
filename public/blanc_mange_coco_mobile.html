@@ -61,29 +61,38 @@ body {
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
-const main = document.getElementById("main");
-const posed = document.getElementById("posed");
+
 const question = document.getElementById("question");
+const posed = document.getElementById("posed");
+const main = document.getElementById("main");
 
-socket.on("question", q => question.textContent = q);
+let phase = "pose";
 
+/* ---------- QUESTION ---------- */
+socket.on("question", q => {
+  question.textContent = q;
+});
+
+/* ---------- MAIN ---------- */
 socket.on("main", cartes => {
+  console.log("📥 Cartes reçues:", cartes.length);
+  if (phase !== "pose") return;
+
   main.innerHTML = "";
   cartes.forEach((txt, i) => {
     const c = document.createElement("div");
     c.className = "card";
     c.onclick = () => socket.emit("poserCarteIndex", i);
 
-    const t = document.createElement("div");
-    t.className = "text";
-    t.textContent = txt;
-
-    c.appendChild(t);
+    c.innerHTML = `<div class="text">${txt}</div>`;
     main.appendChild(c);
   });
 });
 
+/* ---------- APERCU CARTES POSÉES ---------- */
 socket.on("cartesPoseesPreview", cartes => {
+  if (phase !== "pose") return;
+
   posed.innerHTML = "";
   cartes.forEach(txt => {
     const c = document.createElement("div");
@@ -93,16 +102,27 @@ socket.on("cartesPoseesPreview", cartes => {
   });
 });
 
+/* ---------- PRESENTATION ---------- */
 socket.on("presentationCarte", data => {
+  console.log("📺 Carte présentée:", data.index + 1, "/", data.total);
+  phase = "presentation";
+
   posed.innerHTML = "";
+  main.innerHTML = "";
+
   const c = document.createElement("div");
   c.className = "card";
   c.innerHTML = `<div class="text">${data.texte}</div>`;
   c.onclick = () => socket.emit("carteSuivante");
+
   posed.appendChild(c);
 });
 
+/* ---------- VOTE ---------- */
 socket.on("phaseVote", cartes => {
+  console.log("🗳 Phase vote");
+  phase = "vote";
+
   posed.innerHTML = "";
   cartes.forEach((txt, i) => {
     const c = document.createElement("div");
@@ -113,10 +133,12 @@ socket.on("phaseVote", cartes => {
   });
 });
 
+/* ---------- CONNEXION ---------- */
 setTimeout(() => {
   const pseudo = prompt("Pseudo ?");
   socket.emit("rejoindreSalon", pseudo);
 }, 300);
 </script>
+
 </body>
 </html>
