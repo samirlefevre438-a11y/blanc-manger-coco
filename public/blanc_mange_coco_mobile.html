@@ -1,144 +1,666 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BMC Mobile</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Blanc Mangé Coco — Mobile</title>
 
 <style>
+:root { 
+  --vh: 1vh; 
+  --vert: #0DFF8A; 
+  --bg: #06120b; 
+  --bg2: #0b1a13; 
+  --cardW: 150px; 
+  --cardH: 210px; 
+}
+
+html, body {
+  height: calc(var(--vh) * 100);
+}
+
 body {
   margin: 0;
-  background: #0a0a0a;
-  color: white;
-  font-family: Arial, sans-serif;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: var(--bg);
+  color: var(--vert);
+  font-family: "TFMadloud", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-#question {
-  padding: 10px;
-  border-bottom: 2px solid #0DFF8A;
+@font-face { 
+  font-family: "TFMadloud"; 
+  src: url("fonts/TF-Madloud.ttf") format("truetype"); 
+  font-weight: normal; 
+  font-style: normal; 
+}
+
+#app { 
+  display: flex; 
+  flex-direction: column; 
+  height: calc(var(--vh) * 100); 
+  box-sizing: border-box; 
+}
+
+#questionBar {
+  background: var(--bg2);
+  border-bottom: 3px solid var(--vert);
+  padding: 12px 14px;
   text-align: center;
+  font-size: 1.25rem;
+  box-sizing: border-box;
+  z-index: 30;
+  flex: 0 0 auto;
 }
 
-.zone {
+#content {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+}
+
+#posedZone {
+  box-sizing:border-box;
+  padding:12px;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  justify-content: center;
+  gap:20px;
+  overflow-y:auto;
+  flex:1 0 auto;
+}
+
+#handZone {
+  box-sizing:border-box;
+  padding:10px;
+  border-top:3px solid rgba(13,255,138,0.12);
+  background:rgba(0,0,0,0.25);
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  flex:0 0 auto;
+  height: calc(var(--cardH) * 0.9 + 20px);
+  align-items:flex-start;
+  position: relative;
+}
+
+#playersBar {
+  position: absolute;
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  height: 52px;
+  background: rgba(0,0,0,0.85);
+  border-top: 2px solid var(--vert);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
   overflow-x: auto;
-  padding: 10px;
+  box-sizing: border-box;
+  z-index: 40;
+  font-family: Arial, sans-serif;
+}
+
+.spacer-bottom { 
+  height: 52px; 
+  flex: 0 0 auto; 
 }
 
 .card {
-  width: 140px;
-  height: 200px;
-  background: url("carte.png") no-repeat center/100% 100%;
+  width: var(--cardW);
+  height: var(--cardH);
+  flex: 0 0 auto;
+  background-image: url("carte.png");
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  border: 2px solid rgba(13,255,138,0.12);
   position: relative;
-  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  -webkit-user-select: none;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.text {
+.card.voted {
+  border: 3px solid var(--vert);
+  box-shadow: 0 0 25px rgba(13,255,138,0.6);
+}
+
+.card.winner {
+  border: 3px solid gold;
+  box-shadow: 0 0 30px rgba(255,215,0,0.8);
+}
+
+.card .card-text {
+  background: rgba(255,255,255,0.92);
+  color: #04120a;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  max-height: calc(var(--cardH) * 0.65);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  z-index: 12;
+  pointer-events: none;
+  word-wrap: break-word;
+  white-space: normal;
+  text-align: left;
+}
+
+.card .card-author {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  bottom: 8px;
   right: 8px;
-  color: black;
-  font-size: 0.9rem;
+  background: rgba(0,0,0,0.7);
+  color: var(--vert);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-family: Arial, sans-serif;
 }
 
-#main {
+.card:active { 
+  transform: translateY(-2px) scale(0.995); 
+}
+
+#handCounter {
   position: absolute;
-  bottom: 0;
+  top: 10px;
+  right: 10px;
+  background: var(--vert);
+  color: #04120a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: bold;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tab {
+  position: fixed;
+  z-index: 60;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #04120a;
+  background: var(--vert);
+  box-shadow: 0 8px 20px rgba(13,255,138,0.12);
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+#chatTab { 
+  right: 14px; 
+  bottom: 70px; 
+}
+
+#paramTab { 
+  right: 14px; 
+  bottom: 14px; 
+}
+
+.panel {
+  position: fixed;
+  z-index: 70;
+  right: 12px;
+  width: 300px;
+  max-width: 86vw;
+  background: var(--bg2);
+  border: 2px solid var(--vert);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#chatPanel { 
+  bottom: 128px; 
+  height: 360px; 
+}
+
+#paramPanel { 
+  bottom: 128px; 
+  height: auto; 
+  padding: 12px; 
+}
+
+#chatMessages { 
+  flex: 1; 
+  overflow: auto; 
+  padding: 10px; 
+  font-family: Arial, sans-serif; 
+  color: white; 
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.chatInputRow { 
+  display: flex; 
+  gap: 8px; 
+  padding: 10px; 
+  background: rgba(0,0,0,0.06); 
+}
+
+.chatInput { 
+  flex: 1; 
+  padding: 10px; 
+  border-radius: 8px; 
+  border: none; 
+  font-size: 0.95rem; 
+}
+
+.paramBtn { 
+  width: 100%; 
+  padding: 10px; 
+  margin: 6px 0; 
+  border-radius: 8px; 
+  border: none; 
+  background: var(--vert); 
+  color: #04120a; 
+  font-size: 1rem; 
+  cursor: pointer;
+  font-family: "TFMadloud", Arial, sans-serif;
+}
+
+.playerItem { 
+  background: var(--bg2); 
+  border: 1px solid rgba(13,255,138,0.12); 
+  padding: 6px 10px; 
+  border-radius: 8px; 
+  color: var(--vert); 
+  white-space: nowrap; 
+  font-family: Arial, sans-serif; 
+  font-size: 0.9rem; 
+}
+
+.hidden { 
+  display: none !important; 
+}
+
+#toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 255, 138, 0.95);
+  color: #04120a;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  z-index: 100;
+  display: none;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.vote-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
+}
+
+.message-attente {
+  color: var(--vert);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.presentation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 90%;
+}
+
+.presentation-counter {
+  color: var(--vert);
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+}
+
+.presentation-question {
+  background: var(--bg2);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  text-align: center;
+  border: 2px solid rgba(13,255,138,0.3);
+  line-height: 1.6;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-suivant {
+  background: var(--vert);
+  color: #04120a;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-family: "TFMadloud", Arial, sans-serif;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(13,255,138,0.3);
+}
+
+.btn-suivant:active {
+  transform: scale(0.95);
 }
 </style>
 </head>
-
 <body>
+<div id="app">
+  <div id="questionBar">Chargement…</div>
 
-<div id="question">Chargement...</div>
-<div id="posed" class="zone"></div>
-<div id="main" class="zone"></div>
+  <div id="content">
+    <div id="posedZone"></div>
+    <div id="handZone">
+      <div id="handCounter">0 cartes</div>
+    </div>
+    <div class="spacer-bottom"></div>
+  </div>
+
+  <div id="playersBar"></div>
+</div>
+
+<button id="chatTab" class="tab">💬</button>
+<button id="paramTab" class="tab">⚙️</button>
+
+<div id="chatPanel" class="panel" role="dialog" aria-label="Chat">
+  <div id="chatMessages"></div>
+  <div class="chatInputRow">
+    <input id="chatInput" class="chatInput" placeholder="Écrire un message…" />
+    <button id="sendChatBtn" class="paramBtn">Envoyer</button>
+  </div>
+</div>
+
+<div id="paramPanel" class="panel">
+  <button id="btnChangeQuestion" class="paramBtn">Changer la carte</button>
+  <button id="btnChangeHand" class="paramBtn">Changer la main</button>
+  <button id="btnQuit" class="paramBtn">Quitter</button>
+  <button id="btnCloseParam" class="paramBtn" style="background:#333;color:var(--vert);">Fermer</button>
+</div>
+
+<div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+console.log('🚀 Script chargé');
+
+/* Viewport fix */
+function updateVh(){
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+updateVh();
+window.addEventListener('resize', updateVh);
+window.addEventListener('orientationchange', updateVh);
+
+/* DOM refs */
+const questionBar = document.getElementById('questionBar');
+const posedZone = document.getElementById('posedZone');
+const handZone = document.getElementById('handZone');
+const playersBar = document.getElementById('playersBar');
+const chatTab = document.getElementById('chatTab');
+const paramTab = document.getElementById('paramTab');
+const chatPanel = document.getElementById('chatPanel');
+const paramPanel = document.getElementById('paramPanel');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+const btnChangeQuestion = document.getElementById('btnChangeQuestion');
+const btnChangeHand = document.getElementById('btnChangeHand');
+const btnQuit = document.getElementById('btnQuit');
+const btnCloseParam = document.getElementById('btnCloseParam');
+const toast = document.getElementById('toast');
+
+console.log('✅ DOM refs chargés');
+
+/* Socket */
 const socket = io();
+console.log('✅ Socket créé');
 
-const question = document.getElementById("question");
-const posed = document.getElementById("posed");
-const main = document.getElementById("main");
+let myPseudo = null;
+let hasVoted = false;
 
-let phase = "pose";
-
-/* ---------- QUESTION ---------- */
-socket.on("question", q => {
-  question.textContent = q;
+// INTERCEPTION DE TOUS LES EVENTS
+socket.onAny((eventName, ...args) => {
+  console.log(`📨 EVENT: "${eventName}"`, args);
 });
 
-/* ---------- MAIN ---------- */
-socket.on("main", cartes => {
-  console.log("📥 Cartes reçues:", cartes.length);
-  if (phase !== "pose") return;
+socket.on('connect', () => {
+  console.log('🔌 Connecté, ID:', socket.id);
+});
 
-  main.innerHTML = "";
+function showToast(msg, duration = 2000){
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', duration);
+}
+
+function askPseudo(){
+  if(myPseudo) return;
+  myPseudo = prompt("Choisis un pseudo :");
+  if(!myPseudo) myPseudo = 'Joueur' + Math.floor(Math.random()*1000);
+  socket.emit('rejoindreSalon', myPseudo);
+}
+setTimeout(askPseudo, 200);
+
+/* UI toggles */
+chatTab.addEventListener('click', () => {
+  chatPanel.style.display = chatPanel.style.display === 'flex' ? 'none' : 'flex';
+  paramPanel.style.display = 'none';
+});
+
+paramTab.addEventListener('click', () => {
+  paramPanel.style.display = paramPanel.style.display === 'flex' ? 'none' : 'flex';
+  chatPanel.style.display = 'none';
+});
+
+/* Chat */
+function sendChat(){
+  const v = chatInput.value.trim();
+  if(!v) return;
+  socket.emit('chatMessage', v);
+  chatInput.value = '';
+}
+sendChatBtn.addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e => { 
+  if(e.key === 'Enter') sendChat(); 
+});
+
+/* Card creation */
+function makeCard(text, idx, clickHandler, author = null){
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.dataset.index = idx;
+  
+  const txt = document.createElement('div');
+  txt.className = 'card-text';
+  txt.textContent = text;
+  el.appendChild(txt);
+  
+  if(author){
+    const auth = document.createElement('div');
+    auth.className = 'card-author';
+    auth.textContent = author;
+    el.appendChild(auth);
+  }
+  
+  if(clickHandler){
+    el.addEventListener('click', () => clickHandler(Number(el.dataset.index)));
+  }
+  
+  return el;
+}
+
+/* Socket events */
+socket.on('question', q => {
+  questionBar.textContent = q || '...';
+});
+
+socket.on('main', hand => {
+  console.log('📥 Main reçue:', hand.length);
+  handZone.innerHTML = '<div id="handCounter">0 cartes</div>';
+  const counter = document.getElementById('handCounter');
+  hasVoted = false;
+  
+  if(hand.length === 0){
+    counter.textContent = 'Pas de cartes';
+    return;
+  }
+  
+  counter.textContent = `${hand.length} carte${hand.length > 1 ? 's' : ''}`;
+  
+  hand.forEach((txt, i) => {
+    const card = makeCard(txt, i, (index) => {
+      socket.emit('poserCarteIndex', index);
+      showToast('Carte posée !');
+    });
+    handZone.appendChild(card);
+  });
+  handZone.scrollLeft = 0;
+});
+
+socket.on('nombreCartesAttente', nb => {
+  console.log('⏳ Attente:', nb);
+  posedZone.innerHTML = `<div class="message-attente">En attente des autres joueurs... (${nb} carte${nb > 1 ? 's' : ''} posée${nb > 1 ? 's' : ''})</div>`;
+});
+
+socket.on('presentationCarte', data => {
+  console.log('📺 PRÉSENTATION:', data);
+  
+  const questionAvecCarte = data.question.replace('__________', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
+  
+  posedZone.innerHTML = `
+    <div class="presentation-container">
+      <div class="presentation-counter">Carte ${data.index + 1}/${data.total}</div>
+      <div class="presentation-question">${questionAvecCarte}</div>
+      <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${data.index === data.total - 1 ? 'Voter →' : 'Suivant →'}</button>
+    </div>
+  `;
+  
+  if(data.index === 0){
+    showToast('📺 Affichage des cartes', 2000);
+  }
+});
+
+socket.on('phaseVote', cartes => {
+  console.log('🗳️ Vote:', cartes);
+  
+  posedZone.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'vote-cards-container';
+  
+  hasVoted = false;
+  showToast('Vote pour ta carte préférée !', 3000);
+  
   cartes.forEach((txt, i) => {
-    const c = document.createElement("div");
-    c.className = "card";
-    c.onclick = () => socket.emit("poserCarteIndex", i);
+    const card = makeCard(String(txt), i, (index) => {
+      if(hasVoted) return;
+      socket.emit('voter', index);
+      card.classList.add('voted');
+      hasVoted = true;
+      showToast('Vote enregistré !');
+    });
+    container.appendChild(card);
+  });
+  
+  posedZone.appendChild(container);
+});
 
-    c.innerHTML = `<div class="text">${txt}</div>`;
-    main.appendChild(c);
+socket.on('resultatVote', data => {
+  console.log('🏆 Résultat:', data);
+  showToast('🏆 Résultat du vote !', 3000);
+  
+  posedZone.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'vote-cards-container';
+  
+  data.cartesPosees.forEach((c, i) => {
+    const isWinner = data.gagnants.some(g => g.carte === c.carte);
+    const card = makeCard(c.carte, i, null, `${c.pseudo} (${c.votes} vote${c.votes > 1 ? 's' : ''})`);
+    if(isWinner) card.classList.add('winner');
+    container.appendChild(card);
+  });
+  
+  posedZone.appendChild(container);
+});
+
+socket.on('nouveauTour', () => {
+  console.log('🔄 Nouveau tour');
+  posedZone.innerHTML = '';
+  hasVoted = false;
+  showToast('🎴 Nouvelle manche !', 2000);
+});
+
+socket.on('chatMessage', msg => {
+  const d = document.createElement('div');
+  d.textContent = msg;
+  d.style.marginBottom = '6px';
+  chatMessages.appendChild(d);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+socket.on('etatSalon', salon => {
+  playersBar.innerHTML = '';
+  Object.values(salon.joueurs || {}).forEach(j => {
+    const item = document.createElement('div');
+    item.className = 'playerItem';
+    item.textContent = `${j.pseudo} • ${j.points}pt`;
+    playersBar.appendChild(item);
   });
 });
 
-/* ---------- APERCU CARTES POSÉES ---------- */
-socket.on("cartesPoseesPreview", cartes => {
-  if (phase !== "pose") return;
-
-  posed.innerHTML = "";
-  cartes.forEach(txt => {
-    const c = document.createElement("div");
-    c.className = "card";
-    c.innerHTML = `<div class="text">${txt}</div>`;
-    posed.appendChild(c);
-  });
+/* Param buttons */
+btnChangeQuestion.addEventListener('click', () => { 
+  socket.emit('changerQuestion'); 
+  paramPanel.style.display = 'none'; 
+  showToast('Vote pour changer la question !');
 });
 
-/* ---------- PRESENTATION ---------- */
-socket.on("presentationCarte", data => {
-  console.log("📺 Carte présentée:", data.index + 1, "/", data.total);
-  phase = "presentation";
-
-  posed.innerHTML = "";
-  main.innerHTML = "";
-
-  const c = document.createElement("div");
-  c.className = "card";
-  c.innerHTML = `<div class="text">${data.texte}</div>`;
-  c.onclick = () => socket.emit("carteSuivante");
-
-  posed.appendChild(c);
+btnChangeHand.addEventListener('click', () => { 
+  socket.emit('changerMain'); 
+  paramPanel.style.display = 'none'; 
+  showToast('Main changée !');
 });
 
-/* ---------- VOTE ---------- */
-socket.on("phaseVote", cartes => {
-  console.log("🗳 Phase vote");
-  phase = "vote";
-
-  posed.innerHTML = "";
-  cartes.forEach((txt, i) => {
-    const c = document.createElement("div");
-    c.className = "card";
-    c.onclick = () => socket.emit("voter", i);
-    c.innerHTML = `<div class="text">${txt}</div>`;
-    posed.appendChild(c);
-  });
+btnQuit.addEventListener('click', () => { 
+  socket.emit('deconnexion'); 
+  window.location.href = 'index.html'; 
 });
 
-/* ---------- CONNEXION ---------- */
-setTimeout(() => {
-  const pseudo = prompt("Pseudo ?");
-  socket.emit("rejoindreSalon", pseudo);
-}, 300);
+btnCloseParam.addEventListener('click', () => paramPanel.style.display = 'none');
+
+console.log('✅ Script complètement chargé');
 </script>
-
 </body>
 </html>
