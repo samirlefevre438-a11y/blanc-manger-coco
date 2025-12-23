@@ -41,7 +41,8 @@ const salon = {
   questionActuelle: null,
   changementCarteVotes: [],
   partieEnCours: false,
-  carteActuelle: 0 // Index de la carte en cours de présentation
+  carteActuelle: 0, // Index de la carte en cours de présentation
+  joueursPresCarteActuelle: [] // IDs des joueurs ayant cliqué sur "Suivant"
 };
 
 // --- Fonctions utilitaires ---
@@ -102,6 +103,7 @@ function nouveauTour(){
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
   salon.carteActuelle = 0;
+  salon.joueursPresCarteActuelle = [];
   
   const cartesEnJeu = getCartesEnJeu();
   
@@ -227,6 +229,7 @@ io.on("connection", socket=>{
     if(tousOntJoue && salon.cartesPosees.length >= 2){
       salon.phase = "presentation";
       salon.carteActuelle = 0;
+      salon.joueursPresCarteActuelle = []; // Reset des clics
       // Mélanger les cartes pour l'anonymat
       salon.cartesPosees.sort(() => Math.random() - 0.5);
       
@@ -240,7 +243,9 @@ io.on("connection", socket=>{
         carte: salon.cartesPosees[0].carte,
         index: 0,
         total: salon.cartesPosees.length,
-        question: salon.questionActuelle
+        question: salon.questionActuelle,
+        joueursQuiOntClique: 0,
+        totalJoueurs: Object.keys(salon.joueurs).length
       };
       
       console.log("📺 Données à envoyer:", JSON.stringify(dataToSend));
@@ -266,25 +271,47 @@ io.on("connection", socket=>{
   socket.on("carteSuivante", ()=>{
     if(salon.phase !== "presentation") return;
     
-    salon.carteActuelle++;
+    // Ajouter le joueur à la liste s'il n'y est pas déjà
+    if(!salon.joueursPresCarteActuelle.includes(socket.id)){
+      salon.joueursPresCarteActuelle.push(socket.id);
+      console.log(`👆 ${salon.joueurs[socket.id]?.pseudo} a cliqué sur suivant (${salon.joueursPresCarteActuelle.length}/${Object.keys(salon.joueurs).length})`);
+    }
     
-    if(salon.carteActuelle >= salon.cartesPosees.length){
-      // Toutes les cartes ont été présentées, passer au vote
-      salon.phase = "vote";
-      // Envoyer UNIQUEMENT les textes des cartes (strings simples)
-      const cartesTexte = salon.cartesPosees.map(c => c.carte);
-      console.log("📤 Envoi cartes pour vote:", cartesTexte);
-      io.emit("phaseVote", cartesTexte);
-      console.log("🗳️  Phase de vote commencée");
-    } else {
-      // Envoyer la carte suivante
-      io.emit("presentationCarte", {
-        carte: salon.cartesPosees[salon.carteActuelle].carte,
-        index: salon.carteActuelle,
-        total: salon.cartesPosees.length,
-        question: salon.questionActuelle
-      });
-      console.log(`📺 Carte ${salon.carteActuelle + 1}/${salon.cartesPosees.length} envoyée`);
+    const totalJoueurs = Object.keys(salon.joueurs).length;
+    const joueursQuiOntClique = salon.joueursPresCarteActuelle.length;
+    
+    // Informer tous les joueurs du nombre de clics
+    io.emit("updateClicsSuivant", {
+      joueursQuiOntClique,
+      totalJoueurs
+    });
+    
+    // Vérifier si tout le monde a cliqué
+    if(salon.joueursPresCarteActuelle.length >= totalJoueurs){
+      // Reset pour la prochaine carte
+      salon.joueursPresCarteActuelle = [];
+      salon.carteActuelle++;
+      
+      if(salon.carteActuelle >= salon.cartesPosees.length){
+        // Toutes les cartes ont été présentées, passer au vote
+        salon.phase = "vote";
+        const cartesTexte = salon.cartesPosees.map(c => c.carte);
+        console.log("📤 Envoi cartes pour vote:", cartesTexte);
+        io.emit("phaseVote", cartesTexte);
+        console.log("🗳️  Phase de vote commencée");
+      } else {
+        // Envoyer la carte suivante
+        const dataToSend = {
+          carte: salon.cartesPosees[salon.carteActuelle].carte,
+          index: salon.carteActuelle,
+          total: salon.cartesPosees.length,
+          question: salon.questionActuelle,
+          joueursQuiOntClique: 0,
+          totalJoueurs: totalJoueurs
+        };
+        io.emit("presentationCarte", dataToSend);
+        console.log(`📺 Carte ${salon.carteActuelle + 1}/${salon.cartesPosees.length} envoyée`);
+      }
     }
   });
 

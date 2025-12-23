@@ -557,8 +557,6 @@ socket.on('nombreCartesAttente', nb => {
 
 socket.on('presentationCarte', data => {
   console.log('📺 PRÉSENTATION reçue:', data);
-  console.log('📺 Question brute:', data.question);
-  console.log('📺 Carte:', data.carte);
   
   let questionAvecCarte = data.question;
   
@@ -566,35 +564,44 @@ socket.on('presentationCarte', data => {
   const carteColoree = `<span style="color: #0DFF8A; font-weight: bold; background: rgba(13, 255, 138, 0.1); padding: 2px 6px; border-radius: 4px;">${data.carte}</span>`;
   
   // Remplacer TOUS les patterns possibles
-  questionAvecCarte = questionAvecCarte.replace(/…/g, carteColoree); // Caractère ellipse Unicode …
-  questionAvecCarte = questionAvecCarte.replace(/\.\.\./g, carteColoree); // Trois points ...
-  questionAvecCarte = questionAvecCarte.replace(/__________/g, carteColoree); // __________
-  questionAvecCarte = questionAvecCarte.replace(/______/g, carteColoree); // ______
+  questionAvecCarte = questionAvecCarte.replace(/…/g, carteColoree);
+  questionAvecCarte = questionAvecCarte.replace(/\.\.\./g, carteColoree);
+  questionAvecCarte = questionAvecCarte.replace(/__________/g, carteColoree);
+  questionAvecCarte = questionAvecCarte.replace(/______/g, carteColoree);
   
-  // Fallback avec split/join si rien n'a marché
+  // Fallback avec split/join
   if(questionAvecCarte === data.question) {
     if(data.question.includes('…')) {
       questionAvecCarte = data.question.split('…').join(carteColoree);
     } else if(data.question.includes('...')) {
       questionAvecCarte = data.question.split('...').join(carteColoree);
-    } else if(data.question.includes('__________')) {
-      questionAvecCarte = data.question.split('__________').join(carteColoree);
     }
   }
   
-  console.log('📺 Question après remplacement:', questionAvecCarte);
-  console.log('📺 Remplacement effectué?', questionAvecCarte !== data.question);
+  const btnText = data.index === data.total - 1 ? 'Voter →' : 'Suivant →';
+  const clicsInfo = `${data.joueursQuiOntClique || 0}/${data.totalJoueurs || 0}`;
   
   posedZone.innerHTML = `
     <div class="presentation-container">
       <div class="presentation-counter">Carte ${data.index + 1}/${data.total}</div>
       <div class="presentation-question">${questionAvecCarte}</div>
-      <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${data.index === data.total - 1 ? 'Voter →' : 'Suivant →'}</button>
+      <div style="color: var(--vert); font-size: 0.85rem; margin: 10px 0; font-family: Arial, sans-serif;">
+        <span id="clicsCounter">${clicsInfo}</span> joueurs prêts
+      </div>
+      <button class="btn-suivant" onclick="socket.emit('carteSuivante')">${btnText}</button>
     </div>
   `;
   
   if(data.index === 0){
     showToast('📺 Affichage des cartes', 2000);
+  }
+});
+
+socket.on('updateClicsSuivant', data => {
+  console.log('👆 Update clics:', data);
+  const counter = document.getElementById('clicsCounter');
+  if(counter){
+    counter.textContent = `${data.joueursQuiOntClique}/${data.totalJoueurs}`;
   }
 });
 
