@@ -42,19 +42,36 @@ const salon = {
   changementCarteVotes: [],
   partieEnCours: false,
   carteActuelle: 0, // Index de la carte en cours de présentation
-  joueursPresCarteActuelle: [] // IDs des joueurs ayant cliqué sur "Suivant"
+  joueursPresCarteActuelle: [], // IDs des joueurs ayant cliqué sur "Suivant"
+  questionsUtilisees: [], // Questions déjà utilisées
+  cartesEnCirculation: [] // Toutes les cartes actuellement dans les mains des joueurs
 };
 
 // --- Fonctions utilitaires ---
 function piocherCartes(nbCartes, cartesAExclure = []){
   let pile = [...cartes];
-  // Exclure les cartes déjà utilisées
-  pile = pile.filter(c => !cartesAExclure.includes(c));
+  // Exclure les cartes déjà utilisées ET celles en circulation
+  const toutesCartesAExclure = [...cartesAExclure, ...salon.cartesEnCirculation];
+  pile = pile.filter(c => !toutesCartesAExclure.includes(c));
+  
+  // Si pas assez de cartes disponibles, réinitialiser (utiliser toutes les cartes)
+  if(pile.length < nbCartes){
+    console.log("⚠️  Pas assez de cartes uniques, réinitialisation...");
+    pile = [...cartes];
+    // Exclure seulement celles en main actuellement
+    pile = pile.filter(c => !salon.cartesEnCirculation.includes(c));
+  }
+  
   pile.sort(() => Math.random() - 0.5);
   
   const main = [];
   for(let i = 0; i < nbCartes && pile.length > 0; i++){
-    main.push(pile.shift());
+    const carte = pile.shift();
+    main.push(carte);
+    // Ajouter à la circulation
+    if(!salon.cartesEnCirculation.includes(carte)){
+      salon.cartesEnCirculation.push(carte);
+    }
   }
   return main;
 }
@@ -68,7 +85,23 @@ function getCartesEnJeu(){
 }
 
 function nouvelleQuestion(){ 
-  salon.questionActuelle = questions[Math.floor(Math.random()*questions.length)];
+  // Filtrer les questions non utilisées
+  let questionsDisponibles = questions.filter(q => !salon.questionsUtilisees.includes(q));
+  
+  // Si toutes les questions ont été utilisées, réinitialiser
+  if(questionsDisponibles.length === 0){
+    console.log("🔄 Toutes les questions utilisées, réinitialisation !");
+    salon.questionsUtilisees = [];
+    questionsDisponibles = [...questions];
+  }
+  
+  // Choisir une question aléatoire parmi les disponibles
+  salon.questionActuelle = questionsDisponibles[Math.floor(Math.random() * questionsDisponibles.length)];
+  
+  // Ajouter à la liste des questions utilisées
+  salon.questionsUtilisees.push(salon.questionActuelle);
+  
+  console.log(`📋 Question sélectionnée (${salon.questionsUtilisees.length}/${questions.length} utilisées)`);
 }
 
 // --- Démarrer une nouvelle partie ---
@@ -79,12 +112,14 @@ function demarrerPartie(){
   salon.cartesPosees = [];
   salon.phase = "jeu";
   salon.changementCarteVotes = [];
+  salon.cartesEnCirculation = [];
   
-  // Donner 7 cartes à chaque joueur
+  // Donner 7 cartes UNIQUES à chaque joueur
   Object.entries(salon.joueurs).forEach(([id,j])=>{
     j.main = piocherCartes(7, []);
     j.peutJouer = true;
     j.vote = null;
+    console.log(`   ✓ ${j.pseudo}: 7 cartes uniques (Total en circulation: ${salon.cartesEnCirculation.length})`);
   });
   
   nouvelleQuestion();
@@ -105,16 +140,20 @@ function nouveauTour(){
   salon.carteActuelle = 0;
   salon.joueursPresCarteActuelle = [];
   
-  const cartesEnJeu = getCartesEnJeu();
+  // Mettre à jour la liste des cartes en circulation
+  salon.cartesEnCirculation = getCartesEnJeu();
   
-  // Donner UNE nouvelle carte à chaque joueur qui a joué
+  // Donner UNE nouvelle carte UNIQUE à chaque joueur
   Object.entries(salon.joueurs).forEach(([id,j])=>{
-    const nouvellesCarte = piocherCartes(1, cartesEnJeu);
+    const nouvellesCarte = piocherCartes(1, []);
     j.main.push(...nouvellesCarte);
     j.peutJouer = true;
     j.vote = null;
-    console.log(`   ✓ ${j.pseudo}: reçoit 1 carte (total: ${j.main.length})`);
+    console.log(`   ✓ ${j.pseudo}: +1 carte unique (total: ${j.main.length})`);
   });
+  
+  // Mettre à jour après distribution
+  salon.cartesEnCirculation = getCartesEnJeu();
   
   nouvelleQuestion();
   
@@ -126,7 +165,7 @@ function nouveauTour(){
     io.to(id).emit("main", j.main);
   });
   
-  console.log("🔄 Nouveau tour - 1 carte ajoutée à chaque joueur");
+  console.log(`🔄 Nouveau tour - Cartes en circulation: ${salon.cartesEnCirculation.length}/${cartes.length}`);
 }
 
 // --- Connexion socket ---
@@ -152,8 +191,8 @@ io.on("connection", socket=>{
       
       // Si une partie est en cours, donner 7 cartes au nouveau joueur
       if(salon.partieEnCours){
-        const cartesEnJeu = getCartesEnJeu();
-        salon.joueurs[socket.id].main = piocherCartes(7, cartesEnJeu);
+        salon.joueurs[socket.id].main = piocherCartes(7, []);
+        salon.cartesEnCirculation = getCartesEnJeu(); // Mettre à jour
         socket.emit("main", salon.joueurs[socket.id].main);
         socket.emit("question", salon.questionActuelle);
         
@@ -195,6 +234,11 @@ io.on("connection", socket=>{
     if(index<0 || index>=j.main.length) return;
 
     const carte = j.main.splice(index,1)[0];
+    
+    // Retirer la carte de la circulation (elle est maintenant posée)
+    const circIndex = salon.cartesEnCirculation.indexOf(carte);
+    if(circIndex > -1) salon.cartesEnCirculation.splice(circIndex, 1);
+    
     j.peutJouer = false;
     salon.cartesPosees.push({
       carte, 
@@ -205,7 +249,7 @@ io.on("connection", socket=>{
 
     socket.emit("main", j.main);
     
-    console.log(`🃏 ${j.pseudo} a posé une carte (reste ${j.main.length})`);
+    console.log(`🃏 ${j.pseudo} a posé "${carte}" (reste ${j.main.length} en main)`);
     
     // Envoyer mise à jour du nombre de cartes posées
     io.emit("nombreCartesAttente", salon.cartesPosees.length);
@@ -261,11 +305,22 @@ io.on("connection", socket=>{
     const j = salon.joueurs[socket.id];
     if(!j || salon.phase!=="jeu" || !j.peutJouer) return;
 
-    const cartesEnJeu = getCartesEnJeu();
-    const nouvelleMain = piocherCartes(7, cartesEnJeu);
+    // Retirer les anciennes cartes de la circulation
+    j.main.forEach(carte => {
+      const index = salon.cartesEnCirculation.indexOf(carte);
+      if(index > -1) salon.cartesEnCirculation.splice(index, 1);
+    });
+
+    // Piocher une nouvelle main unique
+    const nouvelleMain = piocherCartes(7, []);
     j.main = nouvelleMain;
+    
+    // Mettre à jour la circulation
+    salon.cartesEnCirculation = getCartesEnJeu();
+    
     socket.emit("main", j.main);
     io.emit("chatMessage", `🔄 ${j.pseudo} a changé sa main`);
+    console.log(`🔄 ${j.pseudo} a changé sa main (Circulation: ${salon.cartesEnCirculation.length})`);
   });
 
   socket.on("carteSuivante", ()=>{
