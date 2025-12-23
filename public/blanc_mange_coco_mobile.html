@@ -559,12 +559,13 @@ socket.on('presentationCarte', data => {
   console.log('📺 PRÉSENTATION reçue:', data);
   console.log('📺 Question brute:', data.question);
   console.log('📺 Carte:', data.carte);
-  console.log('📺 Question contient "__________"?', data.question.includes('__________'));
   
   let questionAvecCarte = data.question;
   
-  // Vérifier si la question contient bien le placeholder
-  if(data.question.includes('__________')){
+  // Remplacer "..." par la carte (et aussi "__________" au cas où)
+  if(data.question.includes('...')){
+    questionAvecCarte = data.question.replace('...', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
+  } else if(data.question.includes('__________')){
     questionAvecCarte = data.question.replace('__________', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
   } else {
     // Si pas de placeholder, afficher "Question + Carte" séparément
