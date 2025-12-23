@@ -556,9 +556,22 @@ socket.on('nombreCartesAttente', nb => {
 });
 
 socket.on('presentationCarte', data => {
-  console.log('📺 PRÉSENTATION:', data);
+  console.log('📺 PRÉSENTATION reçue:', data);
+  console.log('📺 Question brute:', data.question);
+  console.log('📺 Carte:', data.carte);
+  console.log('📺 Question contient "__________"?', data.question.includes('__________'));
   
-  const questionAvecCarte = data.question.replace('__________', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
+  let questionAvecCarte = data.question;
+  
+  // Vérifier si la question contient bien le placeholder
+  if(data.question.includes('__________')){
+    questionAvecCarte = data.question.replace('__________', `<span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`);
+  } else {
+    // Si pas de placeholder, afficher "Question + Carte" séparément
+    questionAvecCarte = `${data.question} <span style="color: #0DFF8A; font-weight: bold;">${data.carte}</span>`;
+  }
+  
+  console.log('📺 Question finale:', questionAvecCarte);
   
   posedZone.innerHTML = `
     <div class="presentation-container">

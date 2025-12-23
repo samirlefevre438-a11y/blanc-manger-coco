@@ -231,14 +231,9 @@ io.on("connection", socket=>{
       salon.cartesPosees.sort(() => Math.random() - 0.5);
       
       console.log("📺 ========== PASSAGE EN PHASE PRÉSENTATION ==========");
+      console.log("📺 Question actuelle:", salon.questionActuelle);
+      console.log("📺 Première carte:", salon.cartesPosees[0].carte);
       console.log("📺 Envoi de la première carte...");
-      console.log("📺 Données à envoyer:", {
-        carte: salon.cartesPosees[0].carte,
-        index: 0,
-        total: salon.cartesPosees.length,
-        question: salon.questionActuelle
-      });
-      console.log("📺 Nombre de clients connectés:", io.sockets.sockets.size);
       
       // Envoyer la première carte
       const dataToSend = {
@@ -248,10 +243,12 @@ io.on("connection", socket=>{
         question: salon.questionActuelle
       };
       
+      console.log("📺 Données à envoyer:", JSON.stringify(dataToSend));
+      console.log("📺 Nombre de clients connectés:", io.sockets.sockets.size);
+      
       io.emit("presentationCarte", dataToSend);
       
       console.log("📺 Event 'presentationCarte' émis à tous les clients");
-      console.log("📺 Phase de présentation commencée");
     }
   });
 
