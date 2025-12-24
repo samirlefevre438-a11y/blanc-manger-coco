@@ -516,3 +516,7 @@ app.get("/kukipix", async (req, res) => {
     });
   }
 });
+
+app.get("/api/test", (req, res) => {
+  res.json({ ok: true });
+});
