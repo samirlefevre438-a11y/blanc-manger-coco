@@ -1,12 +1,116 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pimkipoum Nampapoum</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kukipix</title>
+
+<style>
+:root{
+  --green:#0DFF8A;
+  --bg:#06120b;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--green);
+  font-family: Arial, sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+}
+
+header{
+  padding:16px;
+  font-size:1.5rem;
+  font-weight:bold;
+}
+
+#imageZone{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+}
+
+img{
+  max-width:90vw;
+  max-height:70vh;
+  image-rendering: pixelated;
+  border-radius:12px;
+  box-shadow:0 0 25px rgba(13,255,138,0.3);
+  transition: filter 0.6s ease;
+}
+
+footer{
+  padding:14px;
+  font-size:0.9rem;
+  opacity:0.8;
+}
+</style>
 </head>
-<body style="text-align:center; font-family:Arial, sans-serif;">
-  <h1>Bienvenue sur la page Pimkipoum Nampapoum</h1>
-  <p><a href="index.html">⬅ Retour à l'accueil</a></p>
+
+<body>
+
+<header>🟢 Kukipix</header>
+
+<div id="imageZone">
+  <div>Chargement…</div>
+</div>
+
+<footer>Devine l’image avant qu’elle soit nette 👀</footer>
+
+<script>
+const imageZone = document.getElementById("imageZone");
+
+let images = [];
+let index = 0;
+
+// Charger la liste depuis le serveur
+async function loadImages(){
+  const res = await fetch("/kukipix");
+  const data = await res.json();
+  images = data.files;
+  showImage();
+}
+
+function showImage(){
+  if(images.length === 0) return;
+
+  imageZone.innerHTML = "";
+  const img = document.createElement("img");
+
+  // URL directe Google Drive
+  img.src = `https://drive.google.com/uc?id=${images[index].id}`;
+
+  // Étape 1 : très flou
+  img.style.filter = "blur(18px)";
+
+  imageZone.appendChild(img);
+
+  // Étape 2 : moins flou (30s)
+  setTimeout(()=>{
+    img.style.filter = "blur(6px)";
+  }, 30000);
+
+  // Étape 3 : net (60s)
+  setTimeout(()=>{
+    img.style.filter = "none";
+  }, 60000);
+}
+
+// Tap / clic pour image suivante
+document.body.addEventListener("click", ()=>{
+  if(images.length === 0) return;
+  index = (index + 1) % images.length;
+  showImage();
+});
+
+loadImages();
+</script>
+
 </body>
 </html>
