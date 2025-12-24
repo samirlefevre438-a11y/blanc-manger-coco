@@ -526,3 +526,8 @@ app.get("/api/env-check", (req, res) => {
     googleKeyPresent: !!process.env.GOOGLE_API_KEY
   });
 });
+const FOLDER_ID = "TON_ID_ICI";
+
+app.get("/api/folder-check", (req, res) => {
+  res.json({ folderId: FOLDER_ID });
+});
