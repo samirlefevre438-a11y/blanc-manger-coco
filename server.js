@@ -517,17 +517,22 @@ app.get("/kukipix", async (req, res) => {
   }
 });
 
-app.get("/api/test", (req, res) => {
-  res.json({ ok: true });
-});
+app.get("/kukipix", async (req, res) => {
+  try {
+    console.log("✅ /kukipix appelé");
 
-app.get("/api/env-check", (req, res) => {
-  res.json({
-    googleKeyPresent: !!process.env.GOOGLE_API_KEY
-  });
-});
-const FOLDER_ID = "161u_Cuz97yYJUbuz5Q0u26etYxLMj_v9";
+    console.log("API KEY =", process.env.GOOGLE_API_KEY);
+    console.log("FOLDER ID =", process.env.KUKIPIX_FOLDER_ID);
 
-app.get("/api/folder-check", (req, res) => {
-  res.json({ folderId: FOLDER_ID });
+    res.json({
+      success: true,
+      test: "route OK",
+      apiKeyDefined: !!process.env.GOOGLE_API_KEY,
+      folderIdDefined: !!process.env.KUKIPIX_FOLDER_ID
+    });
+
+  } catch (err) {
+    console.error("❌ ERREUR /kukipix :", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
