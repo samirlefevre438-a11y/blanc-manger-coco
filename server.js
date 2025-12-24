@@ -520,3 +520,9 @@ app.get("/kukipix", async (req, res) => {
 app.get("/api/test", (req, res) => {
   res.json({ ok: true });
 });
+
+app.get("/api/env-check", (req, res) => {
+  res.json({
+    googleKeyPresent: !!process.env.GOOGLE_API_KEY
+  });
+});
