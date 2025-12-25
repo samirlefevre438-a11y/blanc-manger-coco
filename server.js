@@ -1,6 +1,6 @@
-// =====================
-// IMPORTS
-// =====================
+/**************************************************
+ * IMPORTS
+ **************************************************/
 const express = require("express");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
@@ -8,9 +8,9 @@ const fs = require("fs");
 const bodyParser = require("body-parser");
 const { google } = require("googleapis");
 
-// =====================
-// INIT SERVEUR
-// =====================
+/**************************************************
+ * INIT SERVEUR
+ **************************************************/
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
@@ -18,115 +18,68 @@ const io = new Server(server);
 app.use(express.static("public"));
 app.use(bodyParser.json());
 
-// =====================
-// CHARGEMENT DES FICHIERS
-// =====================
+/**************************************************
+ * CHARGEMENT DES CARTES / QUESTIONS
+ **************************************************/
 let cartes = fs.readFileSync("cartes.txt", "utf8")
-  .split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  .split("\n")
+  .map(l => l.trim())
+  .filter(Boolean);
 
 let questions = fs.readFileSync("textequestion.txt", "utf8")
-  .split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  .split("\n")
+  .map(l => l.trim())
+  .filter(Boolean);
 
-console.log(`📦 ${cartes.length} cartes et ${questions.length} questions chargées.`);
+console.log(`${cartes.length} cartes et ${questions.length} questions chargees`);
 
-// =====================
-// AJOUT CARTES / QUESTIONS
-// =====================
-app.post("/ajouterCarte", (req, res) => {
-  const { type, texte } = req.body;
-
-  if (!texte || !type || !["carte", "question"].includes(type)) {
-    return res.status(400).send("Mauvais format");
-  }
-
-  if (type === "carte") {
-    fs.appendFileSync("cartes.txt", "\n" + texte);
-    cartes.push(texte);
-  } else {
-    fs.appendFileSync("textequestion.txt", "\n" + texte);
-    questions.push(texte);
-  }
-
-  res.json({ success: true });
-});
-
-// =====================
-// ÉTAT DU SALON
-// =====================
+/**************************************************
+ * SALON
+ **************************************************/
 const salon = {
   joueurs: {},
   cartesPosees: [],
   phase: "jeu",
   questionActuelle: null,
-  changementCarteVotes: [],
   partieEnCours: false,
-  carteActuelle: 0,
-  joueursPresCarteActuelle: [],
-  questionsUtilisees: [],
-  cartesEnCirculation: []
 };
 
-// =====================
-// FONCTIONS UTILES
-// =====================
-function piocherCartes(nb) {
-  let pile = cartes.filter(c => !salon.cartesEnCirculation.includes(c));
-
-  if (pile.length < nb) {
-    pile = [...cartes];
-    salon.cartesEnCirculation = [];
-  }
-
-  pile.sort(() => Math.random() - 0.5);
-
-  const tirage = pile.slice(0, nb);
-  salon.cartesEnCirculation.push(...tirage);
-  return tirage;
-}
-
+/**************************************************
+ * OUTILS
+ **************************************************/
 function nouvelleQuestion() {
-  let dispo = questions.filter(q => !salon.questionsUtilisees.includes(q));
-
-  if (dispo.length === 0) {
-    salon.questionsUtilisees = [];
-    dispo = [...questions];
-  }
-
-  salon.questionActuelle = dispo[Math.floor(Math.random() * dispo.length)];
-  salon.questionsUtilisees.push(salon.questionActuelle);
+  salon.questionActuelle =
+    questions[Math.floor(Math.random() * questions.length)];
 }
 
-// =====================
-// DÉMARRER PARTIE
-// =====================
 function demarrerPartie() {
+  if (Object.keys(salon.joueurs).length < 2) return;
+
   salon.partieEnCours = true;
-  salon.phase = "jeu";
   salon.cartesPosees = [];
-  salon.cartesEnCirculation = [];
+  salon.phase = "jeu";
 
   Object.values(salon.joueurs).forEach(j => {
-    j.main = piocherCartes(7);
+    j.main = [...cartes].sort(() => Math.random() - 0.5).slice(0, 7);
     j.peutJouer = true;
     j.vote = null;
   });
 
   nouvelleQuestion();
-  io.emit("question", salon.questionActuelle);
-  io.emit("etatSalon", salon);
 
+  io.emit("question", salon.questionActuelle);
   Object.entries(salon.joueurs).forEach(([id, j]) => {
     io.to(id).emit("main", j.main);
   });
 
-  console.log("🎮 Partie démarrée");
+  console.log("Partie demarree");
 }
 
-// =====================
-// SOCKET.IO
-// =====================
+/**************************************************
+ * SOCKET.IO
+ **************************************************/
 io.on("connection", socket => {
-  console.log("🟢 Connexion", socket.id);
+  console.log("Nouveau joueur", socket.id);
 
   socket.on("rejoindreSalon", pseudo => {
     if (!pseudo) return;
@@ -134,13 +87,12 @@ io.on("connection", socket => {
     salon.joueurs[socket.id] = {
       pseudo,
       main: [],
-      peutJouer: true,
       points: 0,
-      vote: null
+      peutJouer: true,
+      vote: null,
     };
 
     io.emit("etatSalon", salon);
-    io.emit("chatMessage", `🟢 ${pseudo} a rejoint`);
 
     if (!salon.partieEnCours && Object.keys(salon.joueurs).length >= 2) {
       demarrerPartie();
@@ -152,79 +104,105 @@ io.on("connection", socket => {
     if (!j || !j.peutJouer || salon.phase !== "jeu") return;
 
     const carte = j.main.splice(index, 1)[0];
-    salon.cartesPosees.push({ carte, socketId: socket.id, pseudo: j.pseudo, votes: 0 });
     j.peutJouer = false;
 
+    salon.cartesPosees.push({
+      carte,
+      socketId: socket.id,
+      pseudo: j.pseudo,
+      votes: 0,
+    });
+
     socket.emit("main", j.main);
-    io.emit("nombreCartesAttente", salon.cartesPosees.length);
 
-    const tousOntJoue = Object.values(salon.joueurs).every(j => !j.peutJouer);
+    const tousOntJoue = Object.values(salon.joueurs).every(
+      p => !p.peutJouer
+    );
 
-    if (tousOntJoue && salon.cartesPosees.length >= 2) {
-      salon.phase = "presentation";
-      salon.cartesPosees.sort(() => Math.random() - 0.5);
+    if (tousOntJoue) {
+      salon.phase = "vote";
+      io.emit("phaseVote", salon.cartesPosees.map(c => c.carte));
+    }
+  });
 
-      io.emit("presentationCarte", {
-        carte: salon.cartesPosees[0].carte,
-        index: 0,
-        total: salon.cartesPosees.length,
-        question: salon.questionActuelle
-      });
+  socket.on("voter", index => {
+    if (salon.phase !== "vote") return;
+    const j = salon.joueurs[socket.id];
+    if (!j || j.vote !== null) return;
+
+    salon.cartesPosees[index].votes++;
+    j.vote = index;
+
+    const votes = Object.values(salon.joueurs).filter(j => j.vote !== null);
+    if (votes.length === Object.keys(salon.joueurs).length) {
+      salon.phase = "resultat";
+
+      const gagnante = salon.cartesPosees.sort(
+        (a, b) => b.votes - a.votes
+      )[0];
+
+      salon.joueurs[gagnante.socketId].points++;
+
+      io.emit("resultatVote", gagnante);
+
+      setTimeout(() => demarrerPartie(), 3000);
     }
   });
 
   socket.on("disconnect", () => {
-    const pseudo = salon.joueurs[socket.id]?.pseudo;
     delete salon.joueurs[socket.id];
     io.emit("etatSalon", salon);
-    if (pseudo) io.emit("chatMessage", `🔴 ${pseudo} est parti`);
+
+    if (Object.keys(salon.joueurs).length < 2) {
+      salon.partieEnCours = false;
+    }
   });
 });
 
-// =====================
-// KUKIPIX — GOOGLE DRIVE
-// =====================
+/**************************************************
+ * KUKIPIX - GOOGLE DRIVE
+ **************************************************/
 app.get("/kukipix", async (req, res) => {
   try {
-    console.log("📸 /kukipix appelé");
-
-    if (!process.env.GOOGLE_DRIVE_KEY) {
-      throw new Error("GOOGLE_DRIVE_KEY manquant");
+    if (
+      !process.env.GOOGLE_CLIENT_EMAIL ||
+      !process.env.GOOGLE_PRIVATE_KEY ||
+      !process.env.KUKIPIX_FOLDER_ID
+    ) {
+      throw new Error("Variables d'environnement manquantes");
     }
-    if (!process.env.DRIVE_FOLDER_ID) {
-      throw new Error("DRIVE_FOLDER_ID manquant");
-    }
-
-    const credentials = JSON.parse(process.env.GOOGLE_DRIVE_KEY);
 
     const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ["https://www.googleapis.com/auth/drive.readonly"]
+      credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      },
+      scopes: ["https://www.googleapis.com/auth/drive.readonly"],
     });
 
     const drive = google.drive({ version: "v3", auth });
 
-    const result = await drive.files.list({
-      q: `'${process.env.DRIVE_FOLDER_ID}' in parents and mimeType contains 'image/'`,
-      fields: "files(id,name,mimeType)"
+    const response = await drive.files.list({
+      q: `'${process.env.KUKIPIX_FOLDER_ID}' in parents and mimeType contains 'image/'`,
+      fields: "files(id,name,mimeType)",
     });
 
     res.json({
       success: true,
-      files: result.data.files
+      count: response.data.files.length,
+      files: response.data.files,
     });
 
   } catch (err) {
-    console.error("❌ Kukipix erreur:", err.message);
+    console.error("ERREUR KUKIPIX:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// =====================
-// LANCEMENT SERVEUR
-// =====================
+/**************************************************
+ * LANCEMENT
+ **************************************************/
 nouvelleQuestion();
-
 server.listen(3000, () => {
-  console.log("🚀 Serveur lancé sur http://localhost:3000");
+  console.log("Serveur lance sur le port 3000");
 });
