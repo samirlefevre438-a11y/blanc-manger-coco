@@ -88,7 +88,7 @@ async function loadImages() {
       div.className = "photo";
 
       const img = document.createElement("img");
-      img.src = `https://drive.google.com/uc?id=${file.id}`;
+      img.src = file.thumbnailLink.replace("=s220", "=s512");
       img.alt = file.name;
 
       div.appendChild(img);
