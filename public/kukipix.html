@@ -1,106 +1,104 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kukipix</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kukipix – Test Google Drive</title>
 
-<style>
-:root{
-  --green:#0DFF8A;
-  --bg:#06120b;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1f18;
+      color: #0dff8a;
+      padding: 20px;
+    }
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--green);
-  font-family: Arial, sans-serif;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
-}
+    h1 {
+      text-align: center;
+    }
 
-header{
-  padding:16px;
-  font-size:1.5rem;
-  font-weight:bold;
-}
+    button {
+      background: #0dff8a;
+      color: #003322;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 20px auto;
+      display: block;
+    }
 
-#imageZone{
-  flex:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:100%;
-}
+    pre {
+      background: #00140e;
+      padding: 15px;
+      border-radius: 10px;
+      overflow-x: auto;
+      color: #b8ffe1;
+      font-size: 14px;
+    }
 
-img{
-  max-width:90vw;
-  max-height:70vh;
-  image-rendering: pixelated;
-  border-radius:12px;
-  box-shadow:0 0 25px rgba(13,255,138,0.3);
-  transition: filter 0.6s ease;
-}
+    .error {
+      color: #ff6b6b;
+    }
 
-footer{
-  padding:14px;
-  font-size:0.9rem;
-  opacity:0.8;
-}
-</style>
+    .ok {
+      color: #7CFFB2;
+    }
+  </style>
 </head>
-
 <body>
 
-<header>🟢 Kukipix</header>
+  <h1>🧪 Kukipix – Test Google Drive</h1>
 
-<div id="imageZone">
-  <div>Chargement…</div>
-</div>
+  <button onclick="testKukipix()">Tester la connexion</button>
 
-<footer>Devine l’image avant qu’elle soit nette 👀</footer>
+  <pre id="output">⏳ En attente…</pre>
 
-<script>
-const imageZone = document.getElementById("imageZone");
+  <script>
+    async function testKukipix() {
+      const output = document.getElementById("output");
+      output.textContent = "🔄 Requête vers /kukipix ...";
 
-let images = [];
-let index = 0;
+      try {
+        const res = await fetch("/kukipix");
 
-// Charger la liste depuis le serveur
-async function loadImages(){
-  const res = await fetch("/kukipix");
-  const data = await res.json();
-  if (!data.images || data.images.length === 0) {
-  console.error("Aucune image reçue", data);
-  return;
-}
-  images = data.files;
-  showImage();
-}
+        if (!res.ok) {
+          output.innerHTML = "❌ HTTP ERROR : " + res.status;
+          return;
+        }
 
-function showImage() {
-  if (!images || images.length === 0) {
-    console.warn("Pas d'images à afficher");
-    return;
-  }
+        const data = await res.json();
 
-  const img = images[currentIndex];
-  imageElement.src = img.url;
-}
+        console.log("Réponse /kukipix :", data);
 
+        if (!data.success) {
+          output.innerHTML =
+            "❌ ERREUR SERVEUR\n\n" +
+            JSON.stringify(data, null, 2);
+          return;
+        }
 
-// Tap / clic pour image suivante
-document.body.addEventListener("click", ()=>{
-  if(images.length === 0) return;
-  index = (index + 1) % images.length;
-  showImage();
-});
+        let text = "✅ CONNEXION OK\n\n";
+        text += "Nombre d’images : " + (data.count ?? "inconnu") + "\n\n";
 
-loadImages();
-</script>
+        if (Array.isArray(data.files)) {
+          data.files.forEach((f, i) => {
+            text += `${i + 1}. ${f.name} (${f.id})\n`;
+          });
+        } else {
+          text += "⚠️ Aucune liste de fichiers reçue";
+        }
+
+        output.textContent = text;
+
+      } catch (err) {
+        output.innerHTML =
+          "❌ ERREUR JS\n\n" +
+          err.message;
+      }
+    }
+  </script>
 
 </body>
 </html>
