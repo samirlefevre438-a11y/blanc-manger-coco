@@ -275,16 +275,16 @@ async function nouvellePartieKukipix() {
     totalJoueurs: Object.keys(salonKukipix.joueurs).length
   });
 
-  const image18 = await getCompressedImage(randomImage.id, 18);
+  const image18 = await getCompressedImage(randomImage.id, 25);
   if (image18) {
-    io.to('kukipix').emit("imageUpdate", { image: image18, size: "18px" });
+    io.to('kukipix').emit("imageUpdate", { image: image18, size: "25px" });
   }
 
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
-      const image40 = await getCompressedImage(randomImage.id, 40);
+      const image40 = await getCompressedImage(randomImage.id, 50);
       if (image40) {
-        io.to('kukipix').emit("imageUpdate", { image: image40, size: "40px" });
+        io.to('kukipix').emit("imageUpdate", { image: image40, size: "50px" });
       }
     }
   }, 30000);
