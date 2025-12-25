@@ -185,7 +185,10 @@ const salonKukipix = {
   imageData: null,
   tempsDebut: null,
   reponseCorrecte: null,
-  imagesList: []
+  imagesList: [],
+  motsCles: [], // Liste des mots-clés de l'image actuelle
+  motsTrouves: [], // Mots-clés déjà trouvés avec {mot, joueurId, points}
+  resolutionActuelle: 25 // 25, 50 ou "original"
 };
 
 async function listImagesFromDrive() {
@@ -208,7 +211,7 @@ async function listImagesFromDrive() {
 
 async function getCompressedImage(fileId, size) {
   const cacheKey = `${fileId}_${size}`;
-  const cache = size === 18 ? imageCache.low : size === 40 ? imageCache.medium : imageCache.high;
+  const cache = size === 25 ? imageCache.low : size === 50 ? imageCache.medium : imageCache.high;
   
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey);
@@ -262,35 +265,45 @@ async function nouvellePartieKukipix() {
   salonKukipix.imageActuelle = randomImage;
   salonKukipix.phase = "jeu";
   salonKukipix.tempsDebut = Date.now();
-  salonKukipix.reponseCorrecte = randomImage.name.replace(/\.[^/.]+$/, "");
+  salonKukipix.resolutionActuelle = 25;
+  
+  // Extraire les mots-clés du nom du fichier (séparés par des virgules)
+  const nomSansExtension = randomImage.name.replace(/\.[^/.]+$/, "");
+  salonKukipix.motsCles = nomSansExtension.split(',').map(m => m.trim().toLowerCase()).filter(m => m.length > 0);
+  salonKukipix.motsTrouves = [];
+  salonKukipix.reponseCorrecte = nomSansExtension;
 
-  console.log(`🎮 Kukipix: Nouvelle partie - ${salonKukipix.reponseCorrecte}`);
+  console.log(`🎮 Kukipix: Nouvelle partie - ${salonKukipix.motsCles.length} mots-clés:`, salonKukipix.motsCles);
 
   Object.values(salonKukipix.joueurs).forEach(j => {
-    j.aTrouve = false;
-    j.tempsReponse = null;
+    j.pointsPartie = 0; // Points pour cette partie
   });
 
   io.to('kukipix').emit("nouvellePartie", {
-    totalJoueurs: Object.keys(salonKukipix.joueurs).length
+    totalJoueurs: Object.keys(salonKukipix.joueurs).length,
+    totalMotsCles: salonKukipix.motsCles.length
   });
 
-  const image18 = await getCompressedImage(randomImage.id, 25);
-  if (image18) {
-    io.to('kukipix').emit("imageUpdate", { image: image18, size: "25px" });
+  const image25 = await getCompressedImage(randomImage.id, 25);
+  if (image25) {
+    io.to('kukipix').emit("imageUpdate", { image: image25, size: "25px" });
   }
 
+  // Après 30 secondes, envoyer l'image 50px
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
-      const image40 = await getCompressedImage(randomImage.id, 50);
-      if (image40) {
-        io.to('kukipix').emit("imageUpdate", { image: image40, size: "50px" });
+      salonKukipix.resolutionActuelle = 50;
+      const image50 = await getCompressedImage(randomImage.id, 50);
+      if (image50) {
+        io.to('kukipix').emit("imageUpdate", { image: image50, size: "50px" });
       }
     }
   }, 30000);
 
+  // Après 60 secondes, envoyer l'image originale
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
+      salonKukipix.resolutionActuelle = "original";
       const imageOriginal = await getCompressedImage(randomImage.id, 'original');
       if (imageOriginal) {
         io.to('kukipix').emit("imageUpdate", { image: imageOriginal, size: "original" });
@@ -299,13 +312,31 @@ async function nouvellePartieKukipix() {
   }, 60000);
 }
 
-function verifierReponse(reponse) {
+function verifierReponse(reponse, joueurId) {
   const reponseNormalisee = reponse.toLowerCase().trim();
-  const correcteNormalisee = salonKukipix.reponseCorrecte.toLowerCase().trim();
   
-  return reponseNormalisee === correcteNormalisee || 
-         correcteNormalisee.includes(reponseNormalisee) ||
-         reponseNormalisee.includes(correcteNormalisee);
+  // Vérifier si le mot-clé existe dans la liste
+  const motTrouve = salonKukipix.motsCles.find(mot => 
+    mot === reponseNormalisee || 
+    mot.includes(reponseNormalisee) || 
+    reponseNormalisee.includes(mot)
+  );
+  
+  if (!motTrouve) return { trouve: false };
+  
+  // Vérifier si le mot n'a pas déjà été trouvé
+  const dejaUtilise = salonKukipix.motsTrouves.find(m => m.mot === motTrouve);
+  if (dejaUtilise) {
+    return { trouve: false, dejaUtilise: true, parQui: dejaUtilise.joueurPseudo };
+  }
+  
+  // Calculer les points selon la résolution
+  let points = 0;
+  if (salonKukipix.resolutionActuelle === 25) points = 2;
+  else if (salonKukipix.resolutionActuelle === 50) points = 1;
+  else points = 0; // Pas de points pour l'original
+  
+  return { trouve: true, mot: motTrouve, points };
 }
 
 // Initialiser
@@ -543,8 +574,7 @@ io.on("connection", socket => {
     salonKukipix.joueurs[socket.id] = {
       pseudo,
       points: 0,
-      aTrouve: false,
-      tempsReponse: null
+      pointsPartie: 0
     };
 
     io.to('kukipix').emit("etatSalon", salonKukipix);
@@ -554,12 +584,12 @@ io.on("connection", socket => {
       const tempsEcoule = Date.now() - salonKukipix.tempsDebut;
       
       if (tempsEcoule < 30000) {
-        getCompressedImage(salonKukipix.imageActuelle.id, 18).then(img => {
-          if (img) socket.emit("imageUpdate", { image: img, size: "18px" });
+        getCompressedImage(salonKukipix.imageActuelle.id, 25).then(img => {
+          if (img) socket.emit("imageUpdate", { image: img, size: "25px" });
         });
       } else if (tempsEcoule < 60000) {
-        getCompressedImage(salonKukipix.imageActuelle.id, 40).then(img => {
-          if (img) socket.emit("imageUpdate", { image: img, size: "40px" });
+        getCompressedImage(salonKukipix.imageActuelle.id, 50).then(img => {
+          if (img) socket.emit("imageUpdate", { image: img, size: "50px" });
         });
       } else {
         getCompressedImage(salonKukipix.imageActuelle.id, 'original').then(img => {
@@ -579,37 +609,55 @@ io.on("connection", socket => {
 
   socket.on("proposerReponse", reponse => {
     const j = salonKukipix.joueurs[socket.id];
-    if (!j || salonKukipix.phase !== "jeu" || j.aTrouve) return;
+    if (!j || salonKukipix.phase !== "jeu") return;
 
-    const estCorrecte = verifierReponse(reponse);
+    const resultat = verifierReponse(reponse, socket.id);
 
-    if (estCorrecte) {
-      j.aTrouve = true;
-      j.tempsReponse = Date.now() - salonKukipix.tempsDebut;
+    if (resultat.trouve) {
+      // Ajouter le mot trouvé
+      salonKukipix.motsTrouves.push({
+        mot: resultat.mot,
+        joueurId: socket.id,
+        joueurPseudo: j.pseudo,
+        points: resultat.points
+      });
       
-      let points = 100;
-      if (j.tempsReponse < 10000) points = 100;
-      else if (j.tempsReponse < 30000) points = 75;
-      else if (j.tempsReponse < 60000) points = 50;
-      else points = 25;
+      j.points += resultat.points;
+      j.pointsPartie = (j.pointsPartie || 0) + resultat.points;
 
-      j.points += points;
+      io.to('kukipix').emit("motTrouve", {
+        mot: resultat.mot,
+        joueur: j.pseudo,
+        points: resultat.points,
+        totalTrouves: salonKukipix.motsTrouves.length,
+        totalMotsCles: salonKukipix.motsCles.length
+      });
 
-      io.to('kukipix').emit("chatMessage", `✅ ${j.pseudo} a trouvé ! (+${points} pts)`);
+      io.to('kukipix').emit("chatMessage", `✅ ${j.pseudo} a trouvé "${resultat.mot}" ! (+${resultat.points} pts)`);
       io.to('kukipix').emit("etatSalon", salonKukipix);
 
-      const tousOntTrouve = Object.values(salonKukipix.joueurs).every(joueur => joueur.aTrouve);
-      if (tousOntTrouve) {
+      // Vérifier si tous les mots-clés ont été trouvés
+      if (salonKukipix.motsTrouves.length >= salonKukipix.motsCles.length) {
+        // Dépixeliser immédiatement l'image
+        getCompressedImage(salonKukipix.imageActuelle.id, 'original').then(imageOriginal => {
+          if (imageOriginal) {
+            io.to('kukipix').emit("imageUpdate", { image: imageOriginal, size: "original" });
+          }
+        });
+        
         setTimeout(() => {
           salonKukipix.phase = "resultat";
           io.to('kukipix').emit("finPartie", {
             reponse: salonKukipix.reponseCorrecte,
+            motsTrouves: salonKukipix.motsTrouves,
             classement: Object.values(salonKukipix.joueurs).sort((a, b) => b.points - a.points)
           });
-        }, 2000);
+        }, 3000);
       }
+    } else if (resultat.dejaUtilise) {
+      socket.emit("chatMessage", `⚠️ "${reponse}" a déjà été trouvé par ${resultat.parQui} !`);
     } else {
-      socket.emit("chatMessage", "❌ Ce n'est pas ça !");
+      socket.emit("chatMessage", "❌ Ce n'est pas un mot-clé !");
     }
   });
 

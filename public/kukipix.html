@@ -244,6 +244,48 @@ button:active {
 .podium-item.third {
   background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
 }
+
+.mots-cles-container {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.mots-cles-container h3 {
+  color: #667eea;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+#motsClesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.mot-cle-item {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mot-cle-points {
+  background: rgba(255,255,255,0.3);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
 </style>
 </head>
 <body>
@@ -375,7 +417,27 @@ socket.on('nouvellePartie', data => {
   document.getElementById('gameImage').src = '';
   document.getElementById('answerInput').value = '';
   document.getElementById('imageInfo').textContent = 'Image pixelisée (25px)';
+  document.getElementById('motsClesCount').textContent = `0/${data.totalMotsCles || 0}`;
+  document.getElementById('motsClesList').innerHTML = '';
   startTimer();
+});
+
+socket.on('motTrouve', data => {
+  console.log('🎯 Mot trouvé:', data);
+  
+  // Mettre à jour le compteur
+  document.getElementById('motsClesCount').textContent = `${data.totalTrouves}/${data.totalMotsCles}`;
+  
+  // Ajouter le mot-clé à la liste
+  const motsList = document.getElementById('motsClesList');
+  const motItem = document.createElement('div');
+  motItem.className = 'mot-cle-item';
+  motItem.innerHTML = `
+    <span>${data.mot}</span>
+    <span class="mot-cle-points">+${data.points}</span>
+    <span style="font-size: 0.7rem; opacity: 0.8;">par ${data.joueur}</span>
+  `;
+  motsList.appendChild(motItem);
 });
 
 socket.on('imageUpdate', data => {
@@ -394,7 +456,6 @@ socket.on('etatSalon', salon => {
     item.innerHTML = `
       <span class="player-name">${j.pseudo}</span>
       <span class="player-points">${j.points} pts</span>
-      ${j.aTrouve ? '<span class="player-found">✓</span>' : ''}
     `;
     playersList.appendChild(item);
   });
