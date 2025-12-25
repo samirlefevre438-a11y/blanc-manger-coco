@@ -1,104 +1,109 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kukipix – Test Google Drive</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KukiPix • Test Images</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0d1f18;
-      color: #0dff8a;
-      padding: 20px;
-    }
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background: #0a0a0a;
+  font-family: Arial, sans-serif;
+  color: white;
+}
 
-    h1 {
-      text-align: center;
-    }
+h1 {
+  text-align: center;
+  padding: 15px;
+  color: #0DFF8A;
+}
 
-    button {
-      background: #0dff8a;
-      color: #003322;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 20px auto;
-      display: block;
-    }
+#status {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
 
-    pre {
-      background: #00140e;
-      padding: 15px;
-      border-radius: 10px;
-      overflow-x: auto;
-      color: #b8ffe1;
-      font-size: 14px;
-    }
+#gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
 
-    .error {
-      color: #ff6b6b;
-    }
+.photo {
+  background: #111;
+  border: 2px solid #0DFF8A;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    .ok {
-      color: #7CFFB2;
-    }
-  </style>
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>🧪 Kukipix – Test Google Drive</h1>
+<h1>📸 KukiPix</h1>
+<div id="status">Chargement des images…</div>
+<div id="gallery"></div>
 
-  <button onclick="testKukipix()">Tester la connexion</button>
+<script>
+async function loadImages() {
+  try {
+    const res = await fetch("/kukipix");
+    const data = await res.json();
 
-  <pre id="output">⏳ En attente…</pre>
-
-  <script>
-    async function testKukipix() {
-      const output = document.getElementById("output");
-      output.textContent = "🔄 Requête vers /kukipix ...";
-
-      try {
-        const res = await fetch("/kukipix");
-
-        if (!res.ok) {
-          output.innerHTML = "❌ HTTP ERROR : " + res.status;
-          return;
-        }
-
-        const data = await res.json();
-
-        console.log("Réponse /kukipix :", data);
-
-        if (!data.success) {
-          output.innerHTML =
-            "❌ ERREUR SERVEUR\n\n" +
-            JSON.stringify(data, null, 2);
-          return;
-        }
-
-        let text = "✅ CONNEXION OK\n\n";
-        text += "Nombre d’images : " + (data.count ?? "inconnu") + "\n\n";
-
-        if (Array.isArray(data.files)) {
-          data.files.forEach((f, i) => {
-            text += `${i + 1}. ${f.name} (${f.id})\n`;
-          });
-        } else {
-          text += "⚠️ Aucune liste de fichiers reçue";
-        }
-
-        output.textContent = text;
-
-      } catch (err) {
-        output.innerHTML =
-          "❌ ERREUR JS\n\n" +
-          err.message;
-      }
+    if (!data.success) {
+      document.getElementById("status").textContent =
+        "❌ Erreur serveur";
+      console.error(data);
+      return;
     }
-  </script>
+
+    if (!data.files || data.files.length === 0) {
+      document.getElementById("status").textContent =
+        "📂 Aucune image trouvée";
+      return;
+    }
+
+    document.getElementById("status").textContent =
+      `✅ ${data.files.length} image(s) chargée(s)`;
+
+    const gallery = document.getElementById("gallery");
+
+    data.files.forEach(file => {
+      const div = document.createElement("div");
+      div.className = "photo";
+
+      const img = document.createElement("img");
+      img.src = `https://drive.google.com/uc?id=${file.id}`;
+      img.alt = file.name;
+
+      div.appendChild(img);
+      gallery.appendChild(div);
+    });
+
+  } catch (err) {
+    document.getElementById("status").textContent =
+      "❌ Erreur de connexion";
+    console.error(err);
+  }
+}
+
+loadImages();
+</script>
 
 </body>
 </html>
