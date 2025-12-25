@@ -256,32 +256,41 @@ async function nouvellePartieKukipix() {
     await listImagesFromDrive();
   }
 
-  if (salonKukipix.imagesList.length === 0) {
-    console.log('❌ Kukipix: Aucune image disponible');
+  // Filtrer les images non utilisées
+  const imagesDisponibles = salonKukipix.imagesList.filter(img => 
+    !salonKukipix.imagesUtilisees.includes(img.id)
+  );
+
+  if (imagesDisponibles.length === 0) {
+    console.log('🏁 Kukipix: Toutes les images ont été jouées !');
+    io.to('kukipix').emit("toutesImagesJouees");
+    salonKukipix.phase = "fini";
     return;
   }
 
-  const randomImage = salonKukipix.imagesList[Math.floor(Math.random() * salonKukipix.imagesList.length)];
+  const randomImage = imagesDisponibles[Math.floor(Math.random() * imagesDisponibles.length)];
   salonKukipix.imageActuelle = randomImage;
+  salonKukipix.imagesUtilisees.push(randomImage.id);
   salonKukipix.phase = "jeu";
   salonKukipix.tempsDebut = Date.now();
   salonKukipix.resolutionActuelle = 25;
   
-  // Extraire les mots-clés du nom du fichier (séparés par des virgules)
   const nomSansExtension = randomImage.name.replace(/\.[^/.]+$/, "");
   salonKukipix.motsCles = nomSansExtension.split(',').map(m => m.trim().toLowerCase()).filter(m => m.length > 0);
   salonKukipix.motsTrouves = [];
   salonKukipix.reponseCorrecte = nomSansExtension;
 
-  console.log(`🎮 Kukipix: Nouvelle partie - ${salonKukipix.motsCles.length} mots-clés:`, salonKukipix.motsCles);
+  console.log(`🎮 Kukipix: Partie ${salonKukipix.imagesUtilisees.length}/${salonKukipix.imagesList.length} - ${salonKukipix.motsCles.length} mots-clés:`, salonKukipix.motsCles);
 
   Object.values(salonKukipix.joueurs).forEach(j => {
-    j.pointsPartie = 0; // Points pour cette partie
+    j.pointsPartie = 0;
   });
 
   io.to('kukipix').emit("nouvellePartie", {
     totalJoueurs: Object.keys(salonKukipix.joueurs).length,
-    totalMotsCles: salonKukipix.motsCles.length
+    totalMotsCles: salonKukipix.motsCles.length,
+    partieNum: salonKukipix.imagesUtilisees.length,
+    totalImages: salonKukipix.imagesList.length
   });
 
   const image25 = await getCompressedImage(randomImage.id, 25);
@@ -289,7 +298,6 @@ async function nouvellePartieKukipix() {
     io.to('kukipix').emit("imageUpdate", { image: image25, size: "25px" });
   }
 
-  // Après 30 secondes, envoyer l'image 50px
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
       salonKukipix.resolutionActuelle = 50;
@@ -300,7 +308,6 @@ async function nouvellePartieKukipix() {
     }
   }, 30000);
 
-  // Après 60 secondes, envoyer l'image originale
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
       salonKukipix.resolutionActuelle = "original";
@@ -604,6 +611,13 @@ io.on("connection", socket => {
       socket.emit("chatMessage", "⚠️ Une partie est déjà en cours");
       return;
     }
+    
+    // Réinitialiser les images utilisées si on démarre une nouvelle session
+    if(salonKukipix.phase === "attente" || salonKukipix.phase === "fini") {
+      salonKukipix.imagesUtilisees = [];
+      console.log("🔄 Kukipix: Réinitialisation des images utilisées");
+    }
+    
     await nouvellePartieKukipix();
   });
 
@@ -652,6 +666,11 @@ io.on("connection", socket => {
             motsTrouves: salonKukipix.motsTrouves,
             classement: Object.values(salonKukipix.joueurs).sort((a, b) => b.points - a.points)
           });
+          
+          // Lancer automatiquement la prochaine partie après 5 secondes
+          setTimeout(async () => {
+            await nouvellePartieKukipix();
+          }, 5000);
         }, 3000);
       }
     } else if (resultat.dejaUtilise) {

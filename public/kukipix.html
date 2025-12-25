@@ -299,12 +299,16 @@ button:active {
     <!-- Écran d'attente -->
     <div id="waitingScreen" class="waiting-screen">
       <h2>En attente de joueurs...</h2>
+      <p id="progressInfo" style="color: #667eea; margin: 20px 0;"></p>
       <button class="btn-primary" onclick="demarrerPartie()">🎮 Démarrer la partie</button>
     </div>
 
     <!-- Écran de jeu -->
     <div id="gameScreen" class="hidden">
-      <div class="timer" id="timer">00:00</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="timer" id="timer" style="margin: 0;">00:00</div>
+        <div style="color: #667eea; font-weight: bold;" id="partieProgress">Partie 1/10</div>
+      </div>
       
       <div class="image-container">
         <img id="gameImage" src="" alt="Image mystère" />
@@ -333,12 +337,14 @@ button:active {
 
     <!-- Écran de résultat -->
     <div id="resultScreen" class="hidden resultat">
-      <h2>🏆 Partie terminée !</h2>
-      <p style="font-size: 1.3rem; margin: 20px 0;">La réponse était : <strong id="correctAnswer"></strong></p>
+      <h2>🏆 Manche terminée !</h2>
+      <p style="font-size: 1.3rem; margin: 20px 0;">Réponse : <strong id="correctAnswer"></strong></p>
       
       <div class="podium" id="podium"></div>
       
-      <button class="btn-primary" onclick="nouvellePartie()">🔄 Nouvelle partie</button>
+      <p style="color: #667eea; font-size: 1.1rem; margin-top: 30px;">
+        ⏱️ Prochaine image dans <span id="countdown">5</span> secondes...
+      </p>
     </div>
   </div>
 </div>
@@ -350,6 +356,7 @@ const socket = io();
 let myPseudo = null;
 let timerInterval = null;
 let startTime = null;
+let countdownInterval = null;
 
 // Demander le pseudo
 function askPseudo() {
@@ -410,7 +417,7 @@ function stopTimer() {
 
 // Socket events
 socket.on('nouvellePartie', data => {
-  console.log('🎮 Nouvelle partie');
+  console.log('🎮 Nouvelle partie', data);
   document.getElementById('waitingScreen').classList.add('hidden');
   document.getElementById('gameScreen').classList.remove('hidden');
   document.getElementById('resultScreen').classList.add('hidden');
@@ -419,7 +426,20 @@ socket.on('nouvellePartie', data => {
   document.getElementById('imageInfo').textContent = 'Image pixelisée (25px)';
   document.getElementById('motsClesCount').textContent = `0/${data.totalMotsCles || 0}`;
   document.getElementById('motsClesList').innerHTML = '';
+  document.getElementById('partieProgress').textContent = `Partie ${data.partieNum || 1}/${data.totalImages || '?'}`;
   startTimer();
+});
+
+socket.on('toutesImagesJouees', () => {
+  console.log('🏁 Toutes les images jouées !');
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('waitingScreen').classList.remove('hidden');
+  
+  const progressInfo = document.getElementById('progressInfo');
+  progressInfo.textContent = '🎉 Toutes les images ont été jouées ! Bravo !';
+  progressInfo.style.color = '#10b981';
+  progressInfo.style.fontSize = '1.2rem';
 });
 
 socket.on('motTrouve', data => {
@@ -496,6 +516,9 @@ socket.on('finPartie', data => {
     `;
     podium.appendChild(item);
   });
+  
+  // Démarrer le compte à rebours
+  startCountdown(5);
 });
 
 console.log('✅ Client Kukipix chargé');
