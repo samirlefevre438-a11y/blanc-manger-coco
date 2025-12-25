@@ -2,185 +2,69 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Kukipix - Devine l'image !</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Kukipix</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+:root { 
+  --vh: 1vh; 
+  --vert: #0DFF8A; 
+  --bg: #06120b; 
+  --bg2: #0b1a13; 
+}
+
+html, body {
+  height: calc(var(--vh) * 100);
+}
 
 body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: var(--bg);
+  color: var(--vert);
+  font-family: "TFMadloud", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+@font-face { 
+  font-family: "TFMadloud"; 
+  src: url("fonts/TF-Madloud.ttf") format("truetype"); 
+  font-weight: normal; 
+  font-style: normal; 
 }
 
 #app {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  max-width: 800px;
-  width: 100%;
-  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 30px;
+  background: var(--bg2);
+  border-bottom: 3px solid var(--vert);
+  padding: 20px;
   text-align: center;
 }
 
 .header h1 {
   font-size: 2.5rem;
-  margin-bottom: 10px;
+  margin: 0;
+  color: var(--vert);
 }
 
-.game-area {
-  padding: 30px;
-}
-
-.image-container {
-  background: #f5f5f5;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 600px;
-  overflow: hidden;
-}
-
-#gameImage {
-  min-width: 400px;
-  min-height: 400px;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  image-rendering: pixelated;
-  transition: filter 0.5s ease;
-}
-
-.image-info {
-  text-align: center;
-  color: #666;
+.header .subtitle {
+  color: rgba(13, 255, 138, 0.7);
   font-size: 0.9rem;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
-.answer-area {
-  margin-bottom: 30px;
-}
-
-.answer-input {
-  display: flex;
-  gap: 10px;
-}
-
-input[type="text"] {
+.game-container {
   flex: 1;
-  padding: 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: border 0.3s;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-button {
-  padding: 15px 30px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-success {
-  background: #10b981;
-  color: white;
-}
-
-.players-area {
-  background: #f9f9f9;
-  border-radius: 10px;
   padding: 20px;
-  margin-bottom: 20px;
-}
-
-.players-area h3 {
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.player-item {
-  background: white;
-  padding: 10px 15px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.player-name {
-  font-weight: bold;
-  color: #667eea;
-}
-
-.player-points {
-  color: #10b981;
-  font-weight: bold;
-}
-
-.player-found {
-  color: #10b981;
-  font-size: 1.2rem;
-}
-
-.chat-area {
-  background: #f9f9f9;
-  border-radius: 10px;
-  padding: 20px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.chat-message {
-  padding: 8px 0;
-  color: #555;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.chat-message:last-child {
-  border-bottom: none;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .waiting-screen {
@@ -189,168 +73,418 @@ button:active {
 }
 
 .waiting-screen h2 {
-  color: #667eea;
+  color: var(--vert);
   margin-bottom: 30px;
+  font-size: 2rem;
+}
+
+.info-bar {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  color: rgba(13, 255, 138, 0.6);
+  margin-bottom: 5px;
+}
+
+.info-value {
+  font-size: 1.3rem;
+  color: var(--vert);
+  font-weight: bold;
+}
+
+.image-zone {
+  background: var(--bg2);
+  border: 3px solid rgba(13, 255, 138, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+  position: relative;
+}
+
+#gameImage {
+  max-width: 100%;
+  max-height: 500px;
+  min-width: 300px;
+  min-height: 300px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(13, 255, 138, 0.2);
+  image-rendering: pixelated;
+}
+
+.image-quality {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(13, 255, 138, 0.9);
+  color: var(--bg);
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.mots-cles-section {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.mots-cles-section h3 {
+  color: var(--vert);
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+#motsClesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  min-height: 50px;
+}
+
+.mot-cle-item {
+  background: var(--vert);
+  color: var(--bg);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(13, 255, 138, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.mot-cle-points {
+  background: var(--bg);
+  color: var(--vert);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.answer-zone {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.answer-input {
+  display: flex;
+  gap: 10px;
+}
+
+.answer-input input {
+  flex: 1;
+  background: var(--bg);
+  border: 2px solid var(--vert);
+  border-radius: 10px;
+  padding: 15px;
+  font-size: 1.1rem;
+  color: var(--vert);
+  font-family: Arial, sans-serif;
+}
+
+.answer-input input::placeholder {
+  color: rgba(13, 255, 138, 0.4);
+}
+
+.answer-input input:focus {
+  outline: none;
+  border-color: var(--vert);
+  box-shadow: 0 0 15px rgba(13, 255, 138, 0.3);
+}
+
+.btn {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: "TFMadloud", Arial, sans-serif;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--vert);
+  color: var(--bg);
+  box-shadow: 0 4px 15px rgba(13, 255, 138, 0.4);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(13, 255, 138, 0.6);
+}
+
+.players-section {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.players-section h3 {
+  color: var(--vert);
+  margin: 0 0 15px 0;
+}
+
+.player-item {
+  background: var(--bg);
+  border: 1px solid rgba(13, 255, 138, 0.2);
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name {
+  color: var(--vert);
+  font-weight: bold;
+}
+
+.player-points {
+  color: var(--vert);
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.chat-section {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  color: rgba(13, 255, 138, 0.8);
+  padding: 8px 0;
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+  border-bottom: 1px solid rgba(13, 255, 138, 0.1);
+}
+
+.chat-message:last-child {
+  border-bottom: none;
+}
+
+.resultat-screen {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.resultat-screen h2 {
+  color: var(--vert);
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.reponse-finale {
+  background: var(--bg2);
+  border: 3px solid var(--vert);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+  font-size: 1.5rem;
+}
+
+.podium {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.podium-item {
+  background: var(--bg2);
+  border: 2px solid rgba(13, 255, 138, 0.3);
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.podium-item.first {
+  border-color: #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.podium-item.second {
+  border-color: #C0C0C0;
+  box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
+}
+
+.podium-item.third {
+  border-color: #CD7F32;
+  box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
+}
+
+.countdown {
+  color: var(--vert);
+  font-size: 1.2rem;
+  margin-top: 30px;
 }
 
 .hidden {
   display: none !important;
 }
 
-.timer {
-  text-align: center;
-  font-size: 1.5rem;
-  color: #667eea;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.resultat {
-  text-align: center;
-  padding: 40px;
-}
-
-.resultat h2 {
-  color: #10b981;
-  margin-bottom: 20px;
-}
-
-.podium {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 30px 0;
-}
-
-.podium-item {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.podium-item.first {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  font-size: 1.2rem;
-}
-
-.podium-item.second {
-  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-}
-
-.podium-item.third {
-  background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
-}
-
-.mots-cles-container {
-  background: #f9f9f9;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.mots-cles-container h3 {
-  color: #667eea;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-}
-
-#motsClesList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  min-height: 40px;
-}
-
-.mot-cle-item {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.mot-cle-points {
-  background: rgba(255,255,255,0.3);
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 0.75rem;
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .info-bar {
+    justify-content: center;
+  }
+  
+  .image-zone {
+    min-height: 300px;
+  }
+  
+  #gameImage {
+    min-width: 200px;
+    min-height: 200px;
+  }
 }
 </style>
 </head>
 <body>
 <div id="app">
   <div class="header">
-    <h1>🎨 Kukipix</h1>
-    <p>Devine l'image qui se révèle progressivement !</p>
+    <h1>🎨 KUKIPIX</h1>
+    <div class="subtitle">Devine les mots-clés de l'image !</div>
   </div>
 
-  <div class="game-area">
+  <div class="game-container">
     <!-- Écran d'attente -->
     <div id="waitingScreen" class="waiting-screen">
       <h2>En attente de joueurs...</h2>
-      <p id="progressInfo" style="color: #667eea; margin: 20px 0;"></p>
-      <button class="btn-primary" onclick="demarrerPartie()">🎮 Démarrer la partie</button>
+      <p id="progressInfo" style="color: var(--vert); margin: 20px 0;"></p>
+      <button class="btn btn-primary" onclick="demarrerPartie()">🎮 DÉMARRER</button>
     </div>
 
     <!-- Écran de jeu -->
     <div id="gameScreen" class="hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <div class="timer" id="timer" style="margin: 0;">00:00</div>
-        <div style="color: #667eea; font-weight: bold;" id="partieProgress">Partie 1/10</div>
+      <div class="info-bar">
+        <div class="info-item">
+          <div class="info-label">TEMPS</div>
+          <div class="info-value" id="timer">00:00</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">PROGRESSION</div>
+          <div class="info-value" id="partieProgress">1/10</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">MOTS-CLÉS</div>
+          <div class="info-value" id="motsClesCount">0/0</div>
+        </div>
       </div>
-      
-      <div class="image-container">
+
+      <div class="image-zone">
+        <div class="image-quality" id="imageQuality">25px</div>
         <img id="gameImage" src="" alt="Image mystère" />
       </div>
-      <div class="image-info" id="imageInfo">Image pixelisée (18px)</div>
 
-      <div class="answer-area">
+      <div class="mots-cles-section">
+        <h3>🎯 MOTS-CLÉS TROUVÉS</h3>
+        <div id="motsClesList"></div>
+      </div>
+
+      <div class="answer-zone">
         <div class="answer-input">
           <input 
             type="text" 
             id="answerInput" 
-            placeholder="Tape ta réponse ici..."
+            placeholder="Tape un mot-clé..."
             onkeypress="if(event.key==='Enter') proposerReponse()"
           />
-          <button class="btn-success" onclick="proposerReponse()">✓ Valider</button>
+          <button class="btn btn-primary" onclick="proposerReponse()">✓ VALIDER</button>
         </div>
       </div>
 
-      <div class="players-area">
-        <h3>👥 Joueurs</h3>
+      <div class="players-section">
+        <h3>👥 JOUEURS</h3>
         <div id="playersList"></div>
       </div>
 
-      <div class="chat-area" id="chatArea"></div>
+      <div class="chat-section" id="chatArea"></div>
     </div>
 
     <!-- Écran de résultat -->
-    <div id="resultScreen" class="hidden resultat">
-      <h2>🏆 Manche terminée !</h2>
-      <p style="font-size: 1.3rem; margin: 20px 0;">Réponse : <strong id="correctAnswer"></strong></p>
+    <div id="resultScreen" class="hidden resultat-screen">
+      <h2>🏆 MANCHE TERMINÉE</h2>
+      <div class="reponse-finale">
+        Réponse : <strong id="correctAnswer"></strong>
+      </div>
       
       <div class="podium" id="podium"></div>
       
-      <p style="color: #667eea; font-size: 1.1rem; margin-top: 30px;">
-        ⏱️ Prochaine image dans <span id="countdown">5</span> secondes...
-      </p>
+      <div class="countdown">
+        ⏱️ Prochaine image dans <span id="countdownValue">5</span> secondes...
+      </div>
     </div>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+console.log('🚀 Kukipix chargé');
+
+/* Viewport fix */
+function updateVh(){
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+updateVh();
+window.addEventListener('resize', updateVh);
+
 const socket = io();
 
 let myPseudo = null;
@@ -358,22 +492,19 @@ let timerInterval = null;
 let startTime = null;
 let countdownInterval = null;
 
-// Demander le pseudo
 function askPseudo() {
   if (myPseudo) return;
   myPseudo = prompt("Choisis un pseudo :");
   if (!myPseudo) myPseudo = 'Joueur' + Math.floor(Math.random() * 1000);
-  socket.emit('joinGame', 'kukipix'); // Rejoindre le room Kukipix
+  socket.emit('joinGame', 'kukipix');
   socket.emit('rejoindreSalonKukipix', myPseudo);
 }
 setTimeout(askPseudo, 200);
 
-// Démarrer une partie
 function demarrerPartie() {
   socket.emit('demarrerPartie');
 }
 
-// Proposer une réponse
 function proposerReponse() {
   const input = document.getElementById('answerInput');
   const reponse = input.value.trim();
@@ -383,12 +514,6 @@ function proposerReponse() {
   }
 }
 
-// Nouvelle partie
-function nouvellePartie() {
-  socket.emit('demarrerPartie');
-}
-
-// Formater le temps
 function formatTime(ms) {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -396,10 +521,9 @@ function formatTime(ms) {
   return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Démarrer le timer
 function startTimer() {
-  startTime = Date.now();
   if (timerInterval) clearInterval(timerInterval);
+  startTime = Date.now();
   
   timerInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
@@ -407,12 +531,30 @@ function startTimer() {
   }, 100);
 }
 
-// Arrêter le timer
 function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
   }
+}
+
+function startCountdown(seconds) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  
+  let remaining = seconds;
+  const countdownEl = document.getElementById('countdownValue');
+  if (countdownEl) {
+    countdownEl.textContent = remaining;
+  }
+  
+  countdownInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+    } else if (countdownEl) {
+      countdownEl.textContent = remaining;
+    }
+  }, 1000);
 }
 
 // Socket events
@@ -423,51 +565,39 @@ socket.on('nouvellePartie', data => {
   document.getElementById('resultScreen').classList.add('hidden');
   document.getElementById('gameImage').src = '';
   document.getElementById('answerInput').value = '';
-  document.getElementById('imageInfo').textContent = 'Image pixelisée (25px)';
+  document.getElementById('imageQuality').textContent = '25px';
   document.getElementById('motsClesCount').textContent = `0/${data.totalMotsCles || 0}`;
   document.getElementById('motsClesList').innerHTML = '';
-  document.getElementById('partieProgress').textContent = `Partie ${data.partieNum || 1}/${data.totalImages || '?'}`;
+  document.getElementById('partieProgress').textContent = `${data.partieNum || 1}/${data.totalImages || '?'}`;
   startTimer();
 });
 
-socket.on('toutesImagesJouees', () => {
-  console.log('🏁 Toutes les images jouées !');
-  document.getElementById('gameScreen').classList.add('hidden');
-  document.getElementById('resultScreen').classList.add('hidden');
-  document.getElementById('waitingScreen').classList.remove('hidden');
-  
-  const progressInfo = document.getElementById('progressInfo');
-  progressInfo.textContent = '🎉 Toutes les images ont été jouées ! Bravo !';
-  progressInfo.style.color = '#10b981';
-  progressInfo.style.fontSize = '1.2rem';
+socket.on('imageUpdate', data => {
+  console.log('🖼️ Image reçue:', data.size);
+  document.getElementById('gameImage').src = data.image;
+  document.getElementById('imageQuality').textContent = data.size;
 });
 
 socket.on('motTrouve', data => {
   console.log('🎯 Mot trouvé:', data);
   
-  // Mettre à jour le compteur
   document.getElementById('motsClesCount').textContent = `${data.totalTrouves}/${data.totalMotsCles}`;
   
-  // Ajouter le mot-clé à la liste
   const motsList = document.getElementById('motsClesList');
   const motItem = document.createElement('div');
   motItem.className = 'mot-cle-item';
   motItem.innerHTML = `
     <span>${data.mot}</span>
     <span class="mot-cle-points">+${data.points}</span>
-    <span style="font-size: 0.7rem; opacity: 0.8;">par ${data.joueur}</span>
+    <span style="font-size: 0.8rem; opacity: 0.8;">${data.joueur}</span>
   `;
   motsList.appendChild(motItem);
 });
 
-socket.on('imageUpdate', data => {
-  console.log('🖼️ Image reçue:', data.size);
-  document.getElementById('gameImage').src = data.image;
-  document.getElementById('imageInfo').textContent = `Résolution : ${data.size}`;
-});
-
 socket.on('etatSalon', salon => {
   const playersList = document.getElementById('playersList');
+  if (!playersList) return;
+  
   playersList.innerHTML = '';
   
   Object.values(salon.joueurs || {}).forEach(j => {
@@ -511,17 +641,27 @@ socket.on('finPartie', data => {
     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
     
     item.innerHTML = `
-      <span>${medal} ${joueur.pseudo}</span>
-      <span style="font-weight: bold;">${joueur.points} pts</span>
+      <span style="font-size: 1.3rem;">${medal} ${joueur.pseudo}</span>
+      <span style="font-weight: bold; color: var(--vert); font-size: 1.3rem;">${joueur.points} pts</span>
     `;
     podium.appendChild(item);
   });
   
-  // Démarrer le compte à rebours
   startCountdown(5);
 });
 
-console.log('✅ Client Kukipix chargé');
+socket.on('toutesImagesJouees', () => {
+  console.log('🏁 Toutes les images jouées !');
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('waitingScreen').classList.remove('hidden');
+  
+  const progressInfo = document.getElementById('progressInfo');
+  progressInfo.textContent = '🎉 Toutes les images ont été jouées ! Bravo !';
+  progressInfo.style.fontSize = '1.2rem';
+});
+
+console.log('✅ Client Kukipix prêt');
 </script>
 </body>
 </html>
