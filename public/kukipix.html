@@ -145,6 +145,27 @@ body {
   font-weight: bold;
 }
 
+.reveal-countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(13, 255, 138, 0.95);
+  color: var(--bg);
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  box-shadow: 0 0 30px rgba(13, 255, 138, 0.8);
+  animation: pulse 1s infinite;
+  z-index: 10;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
 .mots-cles-section {
   background: var(--bg2);
   border: 2px solid rgba(13, 255, 138, 0.2);
@@ -429,6 +450,9 @@ body {
 
       <div class="image-zone">
         <div class="image-quality" id="imageQuality">25px</div>
+        <div id="revealCountdown" class="reveal-countdown hidden">
+          Résultats dans <span id="revealSeconds">10</span>s
+        </div>
         <img id="gameImage" src="" alt="Image mystère" />
       </div>
 
@@ -491,6 +515,7 @@ let myPseudo = null;
 let timerInterval = null;
 let startTime = null;
 let countdownInterval = null;
+let revealCountdownInterval = null;
 
 function askPseudo() {
   if (myPseudo) return;
@@ -557,6 +582,28 @@ function startCountdown(seconds) {
   }, 1000);
 }
 
+function startRevealCountdown(seconds) {
+  if (revealCountdownInterval) clearInterval(revealCountdownInterval);
+  
+  const revealEl = document.getElementById('revealCountdown');
+  const secondsEl = document.getElementById('revealSeconds');
+  
+  if (revealEl) revealEl.classList.remove('hidden');
+  
+  let remaining = seconds;
+  if (secondsEl) secondsEl.textContent = remaining;
+  
+  revealCountdownInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(revealCountdownInterval);
+      if (revealEl) revealEl.classList.add('hidden');
+    } else if (secondsEl) {
+      secondsEl.textContent = remaining;
+    }
+  }, 1000);
+}
+
 // Socket events
 socket.on('nouvellePartie', data => {
   console.log('🎮 Nouvelle partie', data);
@@ -566,9 +613,15 @@ socket.on('nouvellePartie', data => {
   document.getElementById('gameImage').src = '';
   document.getElementById('answerInput').value = '';
   document.getElementById('imageQuality').textContent = '25px';
+  document.getElementById('revealCountdown').classList.add('hidden');
   document.getElementById('motsClesCount').textContent = `0/${data.totalMotsCles || 0}`;
   document.getElementById('motsClesList').innerHTML = '';
   document.getElementById('partieProgress').textContent = `${data.partieNum || 1}/${data.totalImages || '?'}`;
+  
+  // Arrêter tous les timers
+  if (revealCountdownInterval) clearInterval(revealCountdownInterval);
+  if (countdownInterval) clearInterval(countdownInterval);
+  
   startTimer();
 });
 
@@ -576,6 +629,11 @@ socket.on('imageUpdate', data => {
   console.log('🖼️ Image reçue:', data.size);
   document.getElementById('gameImage').src = data.image;
   document.getElementById('imageQuality').textContent = data.size;
+  
+  // Si c'est l'original, démarrer le compte à rebours de 10s
+  if (data.size === 'original') {
+    startRevealCountdown(10);
+  }
 });
 
 socket.on('motTrouve', data => {

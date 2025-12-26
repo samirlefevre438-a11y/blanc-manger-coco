@@ -653,12 +653,15 @@ io.on("connection", socket => {
       // Vérifier si tous les mots-clés ont été trouvés
       if (salonKukipix.motsTrouves.length >= salonKukipix.motsCles.length) {
         // Dépixeliser immédiatement l'image
+        salonKukipix.resolutionActuelle = "original";
         getCompressedImage(salonKukipix.imageActuelle.id, 'original').then(imageOriginal => {
           if (imageOriginal) {
             io.to('kukipix').emit("imageUpdate", { image: imageOriginal, size: "original" });
+            io.to('kukipix').emit("chatMessage", "✨ Image révélée ! Résultats dans 10 secondes...");
           }
         });
         
+        // Attendre 10 secondes avec l'image originale
         setTimeout(() => {
           salonKukipix.phase = "resultat";
           io.to('kukipix').emit("finPartie", {
@@ -671,7 +674,7 @@ io.on("connection", socket => {
           setTimeout(async () => {
             await nouvellePartieKukipix();
           }, 5000);
-        }, 3000);
+        }, 10000); // 10 secondes pour admirer l'image originale
       }
     } else if (resultat.dejaUtilise) {
       socket.emit("chatMessage", `⚠️ "${reponse}" a déjà été trouvé par ${resultat.parQui} !`);
