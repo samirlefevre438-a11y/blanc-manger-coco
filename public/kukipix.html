@@ -684,7 +684,14 @@ socket.on('finPartie', data => {
   
   document.getElementById('gameScreen').classList.add('hidden');
   document.getElementById('resultScreen').classList.remove('hidden');
-  document.getElementById('correctAnswer').textContent = data.reponse;
+  
+  // Afficher la réponse complète avec les mots non trouvés
+  let reponseHTML = data.reponse;
+  if (data.motsClesNonTrouves && data.motsClesNonTrouves.length > 0) {
+    reponseHTML += '<br><span style="color: rgba(13, 255, 138, 0.6); font-size: 0.8em;">Mots manqués : ' + 
+                   data.motsClesNonTrouves.join(', ') + '</span>';
+  }
+  document.getElementById('correctAnswer').innerHTML = reponseHTML;
   
   const podium = document.getElementById('podium');
   podium.innerHTML = '';

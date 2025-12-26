@@ -256,7 +256,6 @@ async function nouvellePartieKukipix() {
     await listImagesFromDrive();
   }
 
-  // Filtrer les images non utilisées
   const imagesDisponibles = salonKukipix.imagesList.filter(img => 
     !salonKukipix.imagesUtilisees.includes(img.id)
   );
@@ -298,6 +297,7 @@ async function nouvellePartieKukipix() {
     io.to('kukipix').emit("imageUpdate", { image: image25, size: "25px" });
   }
 
+  // Après 15 secondes, envoyer l'image 50px
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
       salonKukipix.resolutionActuelle = 50;
@@ -306,8 +306,9 @@ async function nouvellePartieKukipix() {
         io.to('kukipix').emit("imageUpdate", { image: image50, size: "50px" });
       }
     }
-  }, 30000);
+  }, 15000);
 
+  // Après 30 secondes, envoyer l'image originale
   setTimeout(async () => {
     if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
       salonKukipix.resolutionActuelle = "original";
@@ -316,7 +317,36 @@ async function nouvellePartieKukipix() {
         io.to('kukipix').emit("imageUpdate", { image: imageOriginal, size: "original" });
       }
     }
-  }, 60000);
+  }, 30000);
+
+  // Après 40 secondes (30s + 10s), fin de manche automatique
+  setTimeout(async () => {
+    if (salonKukipix.phase === "jeu" && salonKukipix.imageActuelle?.id === randomImage.id) {
+      terminerManche();
+    }
+  }, 40000);
+}
+
+function terminerManche() {
+  if (salonKukipix.phase !== "jeu") return;
+  
+  salonKukipix.phase = "resultat";
+  
+  console.log('⏱️  Fin de manche (temps écoulé)');
+  
+  io.to('kukipix').emit("finPartie", {
+    reponse: salonKukipix.reponseCorrecte,
+    motsTrouves: salonKukipix.motsTrouves,
+    motsClesNonTrouves: salonKukipix.motsCles.filter(mot => 
+      !salonKukipix.motsTrouves.some(m => m.mot === mot)
+    ),
+    classement: Object.values(salonKukipix.joueurs).sort((a, b) => b.points - a.points)
+  });
+  
+  // Lancer automatiquement la prochaine partie après 5 secondes
+  setTimeout(async () => {
+    await nouvellePartieKukipix();
+  }, 5000);
 }
 
 function verifierReponse(reponse, joueurId) {
@@ -628,7 +658,6 @@ io.on("connection", socket => {
     const resultat = verifierReponse(reponse, socket.id);
 
     if (resultat.trouve) {
-      // Ajouter le mot trouvé
       salonKukipix.motsTrouves.push({
         mot: resultat.mot,
         joueurId: socket.id,
@@ -650,31 +679,20 @@ io.on("connection", socket => {
       io.to('kukipix').emit("chatMessage", `✅ ${j.pseudo} a trouvé "${resultat.mot}" ! (+${resultat.points} pts)`);
       io.to('kukipix').emit("etatSalon", salonKukipix);
 
-      // Vérifier si tous les mots-clés ont été trouvés
+      // Si tous les mots-clés sont trouvés, dépixeliser et terminer
       if (salonKukipix.motsTrouves.length >= salonKukipix.motsCles.length) {
-        // Dépixeliser immédiatement l'image
         salonKukipix.resolutionActuelle = "original";
         getCompressedImage(salonKukipix.imageActuelle.id, 'original').then(imageOriginal => {
           if (imageOriginal) {
             io.to('kukipix').emit("imageUpdate", { image: imageOriginal, size: "original" });
-            io.to('kukipix').emit("chatMessage", "✨ Image révélée ! Résultats dans 10 secondes...");
+            io.to('kukipix').emit("chatMessage", "🎉 Tous les mots-clés trouvés ! Image révélée !");
           }
         });
         
-        // Attendre 10 secondes avec l'image originale
+        // Terminer la manche après 10 secondes
         setTimeout(() => {
-          salonKukipix.phase = "resultat";
-          io.to('kukipix').emit("finPartie", {
-            reponse: salonKukipix.reponseCorrecte,
-            motsTrouves: salonKukipix.motsTrouves,
-            classement: Object.values(salonKukipix.joueurs).sort((a, b) => b.points - a.points)
-          });
-          
-          // Lancer automatiquement la prochaine partie après 5 secondes
-          setTimeout(async () => {
-            await nouvellePartieKukipix();
-          }, 5000);
-        }, 10000); // 10 secondes pour admirer l'image originale
+          terminerManche();
+        }, 10000);
       }
     } else if (resultat.dejaUtilise) {
       socket.emit("chatMessage", `⚠️ "${reponse}" a déjà été trouvé par ${resultat.parQui} !`);
